@@ -27,7 +27,7 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
     private ComboBox<SyncthingScraper.Folder> comboBox;
 
     @FXML
-    private TreeView<File> treeView;
+    private TreeView<SyncFile> treeView;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -57,21 +57,21 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
 
     @FXML
     void onComboBoxChange() {
-        File rootFile = new File(comboBox.getValue().path());
+        SyncFile rootFile = new SyncFile(new File(comboBox.getValue().path()));
         var root = new TreeItem<>(rootFile, new FontIcon(Feather.FOLDER));
 
         // Setting Cell Factory
         treeView.setCellFactory(c -> new TreeCell<>() {
             @Override
-            protected void updateItem(File file, boolean empty) {
+            protected void updateItem(SyncFile file, boolean empty) {
                 super.updateItem(file, empty);
 
                 if (file == null || empty) {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    setText(file.getName());
-                    var graphic = file.isDirectory() ? new FontIcon(Feather.FOLDER) : new FontIcon(Feather.FILE);
+                    setText(file.getFile().getName());
+                    var graphic = file.getFile().isDirectory() ? new FontIcon(Feather.FOLDER) : new FontIcon(Feather.FILE);
                     setGraphic(graphic);
                 }
             }
@@ -85,21 +85,21 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
     }
 
 
-    void fileScannerAndAdder(TreeItem<File> parent) {
+    void fileScannerAndAdder(TreeItem<SyncFile> parent) {
         fileScannerAndAdder(parent, true);
     }
 
-    void fileScannerAndAdder(TreeItem<File> parent, boolean recursive) {
+    void fileScannerAndAdder(TreeItem<SyncFile> parent, boolean recursive) {
         var parentDir = parent.getValue();
         // This only works for directories
-        if (!parentDir.isDirectory())
+        if (!parentDir.getFile().isDirectory())
             return;
         // Adding Data
-        File[] files = parentDir.listFiles();
+        File[] files = parentDir.getFile().listFiles();
         if (files != null) {
             var children = parent.getChildren();
             for (File file : files) {
-                var item = new TreeItem<File>(file);
+                var item = new TreeItem<SyncFile>(new SyncFile(file));
                 if (file.isDirectory() && recursive) {
                     fileScannerAndAdder(item, false);
                 }
@@ -115,9 +115,9 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
         );
     }
 
-    void fileScannerAndAdder2(TreeItem<File> parent) {
+    void fileScannerAndAdder2(TreeItem<SyncFile> parent) {
         var children = parent.getChildren();
-        for (TreeItem<File> child : children) {
+        for (TreeItem<SyncFile> child : children) {
             fileScannerAndAdder(child, true);
         }
     }
