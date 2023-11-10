@@ -35,7 +35,7 @@ public class SyncPickerApp extends Application {
     public static SyncPickerApp getApplication() { return application; }
 
     public void setPickerStage() throws IOException {
-        stage.setScene(new Scene(pickerLoader.load(), 320, 240));
+        stage.setScene(new Scene(pickerLoader.load(), 800, 400));
     }
 
     public static void main(String[] args) {
