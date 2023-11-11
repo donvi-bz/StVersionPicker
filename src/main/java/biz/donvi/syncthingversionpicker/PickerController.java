@@ -2,11 +2,11 @@ package biz.donvi.syncthingversionpicker;
 
 import atlantafx.base.theme.Styles;
 import javafx.collections.ObservableList;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.kordamp.ikonli.feather.Feather;
@@ -14,17 +14,19 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.io.File;
 import java.net.URL;
+import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class PickerController implements Initializable, EventHandler<TreeItem.TreeModificationEvent<Object>> {
 
     private final SyncthingScraper syncScraper = SyncPickerApp.getApplication().syncScraper;
 
-    private ObservableList<SyncthingScraper.Folder> textFlows;
+    private ObservableList<StFolder> textFlows;
 
     @FXML
-    private ComboBox<SyncthingScraper.Folder> comboBox;
+    private ComboBox<StFolder> comboBox;
 
     @FXML
     private TreeView<SyncFile> treeView;
@@ -34,7 +36,7 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
         comboBox.setItems(syncScraper.getFolders());
         comboBox.setCellFactory(c -> new ListCell<>() {
             @Override
-            protected void updateItem(SyncthingScraper.Folder item, boolean empty) {
+            protected void updateItem(StFolder item, boolean empty) {
                 super.updateItem(item, empty);
 
                 if (item == null || empty) {
@@ -57,7 +59,10 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
 
     @FXML
     void onComboBoxChange() {
-        SyncFile rootFile = new SyncFile(new File(comboBox.getValue().path()));
+        SyncFile rootFile = new SyncFile(
+            comboBox.getValue(),
+            Path.of("")
+        );
         var root = new TreeItem<>(rootFile, new FontIcon(Feather.FOLDER));
 
         // Setting Cell Factory
@@ -70,8 +75,15 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
                     setText(null);
                     setGraphic(null);
                 } else {
-                    setText(file.getFile().getName());
-                    var graphic = file.getFile().isDirectory() ? new FontIcon(Feather.FOLDER) : new FontIcon(Feather.FILE);
+                    var graphic = file.getRealFile().isDirectory()
+                        ? new FontIcon(Feather.FOLDER)
+                        : new FontIcon(Feather.FILE);
+                    String text = file.getRealFile().getName();
+                    if (!file.getPreviousVersions().isEmpty() && !file.isDirectory()) {
+                        text += " (" + file.getPreviousVersions().size() + ")";
+                        graphic.getStyleClass().add(Styles.ACCENT);
+                    }
+                    setText(text);
                     setGraphic(graphic);
                 }
             }
@@ -90,16 +102,17 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
     }
 
     void fileScannerAndAdder(TreeItem<SyncFile> parent, boolean recursive) {
-        var parentDir = parent.getValue();
+        SyncFile parentDir = parent.getValue();
         // This only works for directories
-        if (!parentDir.getFile().isDirectory())
+        if (!parentDir.getRealFile().isDirectory())
             return;
         // Adding Data
-        File[] files = parentDir.getFile().listFiles();
-        if (files != null) {
+        StFolder folder = comboBox.getValue();
+        List<SyncFile> files = parentDir.listFiles();
+        if (!files.isEmpty()) {
             var children = parent.getChildren();
-            for (File file : files) {
-                var item = new TreeItem<SyncFile>(new SyncFile(file));
+            for (SyncFile file : files) {
+                var item = new TreeItem<SyncFile>(file);
                 if (file.isDirectory() && recursive) {
                     fileScannerAndAdder(item, false);
                 }
@@ -118,7 +131,7 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
     void fileScannerAndAdder2(TreeItem<SyncFile> parent) {
         var children = parent.getChildren();
         for (TreeItem<SyncFile> child : children) {
-            fileScannerAndAdder(child, true);
+            fileScannerAndAdder(child, false);
         }
     }
 

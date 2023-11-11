@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.collections.ObservableListBase;
-import javafx.scene.text.Text;
-import javafx.scene.text.TextFlow;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -23,7 +20,7 @@ public class SyncthingScraper {
     private final String url;
     private final String apikey;
 
-    private final ObservableList<Folder> folders = FXCollections.observableArrayList();
+    private final ObservableList<StFolder> folders = FXCollections.observableArrayList();
 
     public SyncthingScraper(String url, String apiKey) {
         this.url = url;
@@ -38,17 +35,11 @@ public class SyncthingScraper {
     }
 
     public void updateFolders() throws IOException {
-        this.folders.setAll(List.of(getEndpoint(ST_LIST_FOLDERS, Folder[].class)));
+        this.folders.setAll(List.of(getEndpoint(ST_LIST_FOLDERS, StFolder[].class)));
     }
 
-    public ObservableList<Folder> getFolders() {
-        return folders.sorted((o1, o2) -> o1.label.compareToIgnoreCase(o2.label));
+    public ObservableList<StFolder> getFolders() {
+        return folders.sorted((o1, o2) -> o1.label().compareToIgnoreCase(o2.label()));
     }
 
-    public record Folder(String id, String label, String path) {
-        @Override
-        public String toString() {
-            return label;
-        }
-    }
 }
