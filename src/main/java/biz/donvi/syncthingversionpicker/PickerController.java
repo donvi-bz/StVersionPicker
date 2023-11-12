@@ -9,6 +9,7 @@ import javafx.scene.control.*;
 import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import org.kordamp.ikonli.evaicons.Evaicons;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
@@ -76,10 +77,12 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
                     setGraphic(null);
                 } else {
                     var graphic = file.getRealFile().isDirectory()
-                        ? new FontIcon(Feather.FOLDER)
-                        : new FontIcon(Feather.FILE);
+                        ? new FontIcon(Evaicons.FOLDER)
+                        : new FontIcon(Evaicons.FILE);
                     String text = file.getRealFile().getName();
-                    if (!file.getPreviousVersions().isEmpty() && !file.isDirectory()) {
+                    if (!file.getRealFile().exists()) {
+                        graphic.getStyleClass().add(Styles.WARNING);
+                    }else if (!file.getPreviousVersions().isEmpty() && !file.isDirectory()) {
                         text += " (" + file.getPreviousVersions().size() + ")";
                         graphic.getStyleClass().add(Styles.ACCENT);
                     }

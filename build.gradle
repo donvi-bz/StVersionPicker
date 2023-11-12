@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'biz.donvi'
-version '1.0-SNAPSHOT'
+version '0.1'
 
 repositories {
   mavenCentral()
@@ -47,6 +47,7 @@ dependencies {
   implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.7.1'
   implementation 'io.github.mkpaz:atlantafx-base:2.0.1'
   implementation 'org.kordamp.ikonli:ikonli-feather-pack:12.3.1'
+  implementation 'org.kordamp.ikonli:ikonli-evaicons-pack:12.3.1'
 }
 
 test {

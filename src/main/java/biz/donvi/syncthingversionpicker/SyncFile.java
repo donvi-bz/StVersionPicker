@@ -4,7 +4,6 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class SyncFile implements Comparable<SyncFile> {
@@ -30,10 +29,18 @@ public class SyncFile implements Comparable<SyncFile> {
     }
 
     public SyncFile(StFolder folder, File realFile) {
-        this(folder, getSubPath(folder, realFile, false));
+        this(folder, makeRelPath(folder, realFile, false));
     }
 
-    private static Path getSubPath(StFolder folder, File realFile, boolean includeStVersion) {
+    /**
+     * Given a {@link StFolder} to use as the base directory, this function will take an
+     * absolute path from a file {@code realFile} and shorten it into a relative path.
+     * @param folder The {@code StFolder} to get the base directory from.
+     * @param realFile The file to get the short path from.
+     * @param includeStVersion If the file includes a {@code .stversion}
+     * @return A relative path to the original file
+     */
+    private static Path makeRelPath(StFolder folder, File realFile, boolean includeStVersion) {
         var fop = Path.of(folder.path());
         var fip = realFile.toPath();
         return fip.subpath(fop.getNameCount() + (includeStVersion ? 1 : 0), fip.getNameCount());
@@ -91,7 +98,7 @@ public class SyncFile implements Comparable<SyncFile> {
             for (File pf : unusedChildren) {
                 var relPathStr = relPath.toString();
                 relPathStr = relPathStr.substring(0, relPathStr.lastIndexOf('.'));
-                if (getSubPath(folder, pf, true).toString().startsWith(relPathStr)) {
+                if (makeRelPath(folder, pf, true).toString().startsWith(relPathStr)) {
                     syncFile.addPreviousVersion(pf);
                     usedChildren.add(pf);
                 }
@@ -100,7 +107,10 @@ public class SyncFile implements Comparable<SyncFile> {
             children.add(syncFile);
         }
         if (!unusedChildren.isEmpty()) {
-            System.out.println(unusedChildren);
+            for (File file : unusedChildren) {
+                // FIXME: This can make duplicates... We don't want that
+                children.add(new SyncFile(folder, makeRelPath(folder, file, true)));
+            }
         }
 
 

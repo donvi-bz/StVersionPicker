@@ -10,6 +10,7 @@ module biz.donvi.syncthingversionpicker {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
     requires org.kordamp.ikonli.feather;
+    requires org.kordamp.ikonli.evaicons;
 
     opens biz.donvi.syncthingversionpicker to javafx.fxml, com.fasterxml.jackson.databind;
     exports biz.donvi.syncthingversionpicker;
