@@ -1,19 +1,20 @@
 package biz.donvi.syncthingversionpicker;
 
 import atlantafx.base.theme.Styles;
+import biz.donvi.syncthingversionpicker.files.StDirectory;
+import biz.donvi.syncthingversionpicker.files.StFile;
+import biz.donvi.syncthingversionpicker.files.StFileGroup;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.kordamp.ikonli.evaicons.Evaicons;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -30,7 +31,7 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
     private ComboBox<StFolder> comboBox;
 
     @FXML
-    private TreeView<SyncFile> treeView;
+    private TreeView<StFile> treeView;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -60,30 +61,33 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
 
     @FXML
     void onComboBoxChange() {
-        SyncFile rootFile = new SyncFile(
-            comboBox.getValue(),
-            Path.of("")
-        );
-        var root = new TreeItem<>(rootFile, new FontIcon(Feather.FOLDER));
+//        SyncFile rootFile = new SyncFile(
+//            comboBox.getValue(),
+//            Path.of("")
+//        );
+
+        StDirectory rootFile = StFile.newDirFromStFolder(comboBox.getValue());
+
+        var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 
         // Setting Cell Factory
-        treeView.setCellFactory(c -> new TreeCell<>() {
+        treeView.setCellFactory(c -> new TreeCell<StFile>() {
             @Override
-            protected void updateItem(SyncFile file, boolean empty) {
+            protected void updateItem(StFile file, boolean empty) {
                 super.updateItem(file, empty);
 
                 if (file == null || empty) {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    var graphic = file.getRealFile().isDirectory()
+                    var graphic = file instanceof StDirectory
                         ? new FontIcon(Evaicons.FOLDER)
                         : new FontIcon(Evaicons.FILE);
-                    String text = file.getRealFile().getName();
-                    if (!file.getRealFile().exists()) {
+                    String text = file.fileName;
+                    if (file.getPrimaryLocation() != StFile.Location.LocalReal) {
                         graphic.getStyleClass().add(Styles.WARNING);
-                    }else if (!file.getPreviousVersions().isEmpty() && !file.isDirectory()) {
-                        text += " (" + file.getPreviousVersions().size() + ")";
+                    }else if (file instanceof StFileGroup fileGroup && fileGroup.hasNonRealLocalFiles()) {
+                        text += " (" + (fileGroup.getFiles().size() - 1) + ")";
                         graphic.getStyleClass().add(Styles.ACCENT);
                     }
                     setText(text);
@@ -100,23 +104,22 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
     }
 
 
-    void fileScannerAndAdder(TreeItem<SyncFile> parent) {
+    void fileScannerAndAdder(TreeItem<StFile> parent) {
         fileScannerAndAdder(parent, true);
     }
 
-    void fileScannerAndAdder(TreeItem<SyncFile> parent, boolean recursive) {
-        SyncFile parentDir = parent.getValue();
+    void fileScannerAndAdder(TreeItem<StFile> parent, boolean recursive) {
         // This only works for directories
-        if (!parentDir.getRealFile().isDirectory())
+        if (!(parent.getValue() instanceof StDirectory parentDir))
             return;
         // Adding Data
         StFolder folder = comboBox.getValue();
-        List<SyncFile> files = parentDir.listFiles();
+        List<StFile> files = parentDir.listFiles();
         if (!files.isEmpty()) {
             var children = parent.getChildren();
-            for (SyncFile file : files) {
-                var item = new TreeItem<SyncFile>(file);
-                if (file.isDirectory() && recursive) {
+            for (StFile file : files) {
+                var item = new TreeItem<>(file);
+                if (file instanceof StDirectory && recursive) {
                     fileScannerAndAdder(item, false);
                 }
                 children.add(item);
@@ -131,9 +134,9 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
         );
     }
 
-    void fileScannerAndAdder2(TreeItem<SyncFile> parent) {
+    void fileScannerAndAdder2(TreeItem<StFile> parent) {
         var children = parent.getChildren();
-        for (TreeItem<SyncFile> child : children) {
+        for (TreeItem<StFile> child : children) {
             fileScannerAndAdder(child, false);
         }
     }
