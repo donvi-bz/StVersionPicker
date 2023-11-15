@@ -4,6 +4,7 @@ import atlantafx.base.theme.Styles;
 import biz.donvi.syncthingversionpicker.files.StDirectory;
 import biz.donvi.syncthingversionpicker.files.StFile;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -16,12 +17,11 @@ import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
-import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ResourceBundle;
 
-public class PickerController implements Initializable, EventHandler<TreeItem.TreeModificationEvent<Object>> {
+public class PickerController implements Initializable {
 
     private final SyncthingScraper syncScraper = SyncPickerApp.getApplication().syncScraper;
 
@@ -32,6 +32,9 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
 
     @FXML
     private TreeView<StFile> treeView;
+
+    @FXML
+    private ListView<StFileGroup.File> fileGroupList;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -57,17 +60,36 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
                 }
             }
         });
+        fileGroupList.setCellFactory(c -> new ListCell<>() {
+            @Override
+            protected void updateItem(StFileGroup.File item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (item == null || empty) {
+                    setText(null);
+                    setGraphic(null);
+                } else {
+                    var graphic = new FontIcon(Evaicons.FILE);
+                    switch (item.location) {
+                        case LocalReal -> {}
+                        case RemoteReal -> graphic.getStyleClass().add(Styles.SUCCESS);
+                        case LocalVersions -> graphic.getStyleClass().add(Styles.WARNING);
+                        case RemoteVersions -> graphic.getStyleClass().add(Styles.ACCENT);
+                    }
+                    setGraphic(graphic);
+                    if (item.location == StFile.Location.LocalReal)
+                        setText("Current Version");
+                    else
+                        setText(item.timestamp);
+                }
+            }
+        });
+        fileGroupList.getStyleClass().add(Styles.DENSE);
     }
 
     @FXML
     void onComboBoxChange() {
-//        SyncFile rootFile = new SyncFile(
-//            comboBox.getValue(),
-//            Path.of("")
-//        );
-
         StDirectory rootFile = StFile.newDirFromStFolder(comboBox.getValue());
-
         var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 
         // Setting Cell Factory
@@ -86,13 +108,22 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
                     String text = file.fileName;
                     if (file.getPrimaryLocation() != StFile.Location.LocalReal) {
                         graphic.getStyleClass().add(Styles.WARNING);
-                    }else if (file instanceof StFileGroup fileGroup && fileGroup.hasNonRealLocalFiles()) {
+                    } else if (file instanceof StFileGroup fileGroup && fileGroup.hasNonRealLocalFiles()) {
                         text += " (" + (fileGroup.getFiles().size() - 1) + ")";
                         graphic.getStyleClass().add(Styles.ACCENT);
                     }
                     setText(text);
                     setGraphic(graphic);
                 }
+            }
+        });
+        treeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null) {
+                fileGroupList.setItems(FXCollections.observableArrayList());
+            }
+            StFile file = newValue.getValue();
+            if (file instanceof StFileGroup fileGroup) {
+                fileGroupList.setItems(FXCollections.observableArrayList(fileGroup.getFiles()));
             }
         });
 
@@ -113,7 +144,6 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
         if (!(parent.getValue() instanceof StDirectory parentDir))
             return;
         // Adding Data
-        StFolder folder = comboBox.getValue();
         List<StFile> files = parentDir.listFiles();
         if (!files.isEmpty()) {
             var children = parent.getChildren();
@@ -126,7 +156,7 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
             }
 
             if (!recursive) {
-                parent.addEventHandler(TreeItem.branchExpandedEvent(), this);
+                parent.addEventHandler(TreeItem.branchExpandedEvent(), treeItemEventHandler);
             }
         }
         parent.getChildren().sort(
@@ -141,10 +171,16 @@ public class PickerController implements Initializable, EventHandler<TreeItem.Tr
         }
     }
 
-    @Override
-    @SuppressWarnings({"unchecked", "rawtypes"}) // Yeah... casting wasn't going as expected, but I know it should work.
-    public void handle(TreeItem.TreeModificationEvent<Object> event) {
-        event.getTreeItem().removeEventHandler(TreeItem.branchExpandedEvent(), this);
-        fileScannerAndAdder2((TreeItem) event.getTreeItem());
-    }
+
+    private final EventHandler<TreeItem.TreeModificationEvent<Object>> treeItemEventHandler = new EventHandler<>() {
+        @Override
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        // Yeah... casting wasn't going as expected, but I know it should work.
+        public void handle(TreeItem.TreeModificationEvent<Object> event) {
+            event.getTreeItem().removeEventHandler(TreeItem.branchExpandedEvent(), this);
+            fileScannerAndAdder2((TreeItem) event.getTreeItem());
+        }
+    };
+
+
 }

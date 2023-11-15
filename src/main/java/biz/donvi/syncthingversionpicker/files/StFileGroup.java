@@ -56,8 +56,8 @@ public final class StFileGroup extends StFile {
     }
 
     public class File {
-        final Location location;
-        final String   timestamp;
+        public final Location location;
+        public final String   timestamp;
 
         File(Location location, String timestamp) {
             this.location = location;
