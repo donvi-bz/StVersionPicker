@@ -11,12 +11,14 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import org.kordamp.ikonli.evaicons.Evaicons;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -38,7 +40,6 @@ public class PickerController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        comboBox.setItems(syncScraper.getFolders());
         comboBox.setCellFactory(c -> new ListCell<>() {
             @Override
             protected void updateItem(StFolder item, boolean empty) {
@@ -60,6 +61,8 @@ public class PickerController implements Initializable {
                 }
             }
         });
+        comboBox.setItems(syncScraper.getFolders());
+
         fileGroupList.setCellFactory(c -> new ListCell<>() {
             @Override
             protected void updateItem(StFileGroup.File item, boolean empty) {
@@ -80,7 +83,17 @@ public class PickerController implements Initializable {
                     if (item.location == StFile.Location.LocalReal)
                         setText("Current Version");
                     else
-                        setText(item.timestamp);
+                        setText(item.getTimeStamp() + "\t|   " + item.getTimeAgo(LocalDateTime.now()));
+
+//                    TextFlow textFlow = new TextFlow();
+//                    Text textLeft = new Text(item.getTimeStamp());
+//                    textLeft.setTextAlignment(TextAlignment.LEFT);
+//                    Text textMiddle = new Text(" | ");
+//                    textMiddle.setTextAlignment(TextAlignment.CENTER);
+//                    Text textRight = new Text(item.getTimeStamp());
+//                    textRight.setTextAlignment(TextAlignment.RIGHT);
+//                    textFlow.getChildren().addAll(textLeft, textMiddle, textRight);
+//                    setGraphic(textFlow);
                 }
             }
         });
@@ -120,9 +133,7 @@ public class PickerController implements Initializable {
         treeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null) {
                 fileGroupList.setItems(FXCollections.observableArrayList());
-            }
-            StFile file = newValue.getValue();
-            if (file instanceof StFileGroup fileGroup) {
+            } else if (newValue.getValue() instanceof StFileGroup fileGroup) {
                 fileGroupList.setItems(FXCollections.observableArrayList(fileGroup.getFiles()));
             }
         });
