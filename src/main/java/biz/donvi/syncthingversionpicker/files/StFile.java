@@ -1,6 +1,7 @@
 package biz.donvi.syncthingversionpicker.files;
 
 import biz.donvi.syncthingversionpicker.StFolder;
+import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,10 +48,8 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      * @return A new {@link StDirectory} that represents the root directory of the Syncthing folder.
      */
     public static StDirectory newDirFromStFolder(StFolder localStFolder) {
-        LocationLister lister = new LocationLister(
-            Paths.get(localStFolder.path()),
-            Paths.get(localStFolder.path(), STV)
-        );
+        LocationLister lister = new LocationLister(Path.of(localStFolder.path()));
+        lister.setLister(Location.RemoteVersions, new RemoteLister());
         return new StDirectory(localStFolder, lister, Paths.get(""), Location.LocalReal);
     }
 

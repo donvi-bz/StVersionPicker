@@ -11,7 +11,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import org.kordamp.ikonli.evaicons.Evaicons;
 import org.kordamp.ikonli.feather.Feather;
@@ -20,8 +19,8 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.List;
 import java.util.ResourceBundle;
+import java.util.concurrent.CompletableFuture;
 
 public class PickerController implements Initializable {
 
@@ -138,7 +137,7 @@ public class PickerController implements Initializable {
             }
         });
 
-        fileScannerAndAdder(root);
+        scanAndAddFiles(root);
         // Adding styles
         treeView.setRoot(root);
         treeView.getStyleClass().add(Styles.DENSE);
@@ -146,39 +145,35 @@ public class PickerController implements Initializable {
     }
 
 
-    void fileScannerAndAdder(TreeItem<StFile> parent) {
-        fileScannerAndAdder(parent, true);
+    void scanAndAddFiles(TreeItem<StFile> parent) {
+        scanAndAddFiles(parent, true);
     }
 
-    void fileScannerAndAdder(TreeItem<StFile> parent, boolean recursive) {
+    void scanAndAddFiles(TreeItem<StFile> parent, boolean recursive) {
         // This only works for directories
         if (!(parent.getValue() instanceof StDirectory parentDir))
             return;
-        // Adding Data
-        List<StFile> files = parentDir.listFiles();
-        if (!files.isEmpty()) {
+        // Taking care of this now...
+        if (!recursive)
+            parent.addEventHandler(TreeItem.branchExpandedEvent(), treeItemEventHandler);
+        // Adding Data. We have to do each location separately.
+        parentDir.listFilesAsync().thenAcceptAsync(files -> {
+            // Now the logic for adding files once we actually get them.
             var children = parent.getChildren();
             for (StFile file : files) {
                 var item = new TreeItem<>(file);
-                if (file instanceof StDirectory && recursive) {
-                    fileScannerAndAdder(item, false);
-                }
+                if (file instanceof StDirectory && recursive)
+                    scanAndAddFiles(item, false);
                 children.add(item);
             }
-
-            if (!recursive) {
-                parent.addEventHandler(TreeItem.branchExpandedEvent(), treeItemEventHandler);
-            }
-        }
-        parent.getChildren().sort(
-            Comparator.comparing(TreeItem::getValue)
-        );
+            parent.getChildren().sort(Comparator.comparing(TreeItem::getValue));
+        });
     }
 
     void fileScannerAndAdder2(TreeItem<StFile> parent) {
         var children = parent.getChildren();
         for (TreeItem<StFile> child : children) {
-            fileScannerAndAdder(child, false);
+            scanAndAddFiles(child, false);
         }
     }
 

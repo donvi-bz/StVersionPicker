@@ -48,7 +48,7 @@ dependencies {
   implementation 'io.github.mkpaz:atlantafx-base:2.0.1'
   implementation 'org.kordamp.ikonli:ikonli-feather-pack:12.3.1'
   implementation 'org.kordamp.ikonli:ikonli-evaicons-pack:12.3.1'
-  implementation 'com.jcraft:jsch:0.1.55'
+  implementation 'com.github.mwiede:jsch:0.2.13'
 }
 
 test {

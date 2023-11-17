@@ -7,6 +7,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class StFileGroup extends StFile {
@@ -56,9 +58,10 @@ public final class StFileGroup extends StFile {
         if (location == null || file.location.ordinal() < location.ordinal()) {
             location = file.location;
         }
+        Collections.sort(files);
     }
 
-    public class File {
+    public class File implements Comparable<File> {
         private static final DateTimeFormatter dfInput = DateTimeFormatter.ofPattern("~yyyyMMdd-HHmmss");
         private static final DateTimeFormatter dfDisplay = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
 
@@ -93,6 +96,11 @@ public final class StFileGroup extends StFile {
                 return String.format("%s hours, %s minutes", dur.toHours(), dur.toMinutes() % 60);
             else
                 return String.format("%s days, %s hours", dur.toDays(), dur.toHours() % 24);
+        }
+
+        @Override
+        public int compareTo(File o) {
+            return this.timestamp.compareTo(o.timestamp);
         }
     }
 

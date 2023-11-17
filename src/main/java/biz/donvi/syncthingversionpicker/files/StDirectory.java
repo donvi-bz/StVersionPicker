@@ -1,11 +1,14 @@
 package biz.donvi.syncthingversionpicker.files;
 
 import biz.donvi.syncthingversionpicker.StFolder;
+import biz.donvi.syncthingversionpicker.SyncPickerApp;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -50,46 +53,50 @@ public final class StDirectory extends StFile {
         return location;
     }
 
-    /**
+    /** <b>FIXME: OUTDATED</b><br/>
      * Gets a list of {@link StFile}s that are within this directory using the provided
      * {@link LocationLister locationLister}. The returned list will contain files from all places listed in the
      * {@link biz.donvi.syncthingversionpicker.files.StFile.Location Location} enum (currently only 4 locations).
      * @return A list of {@code StFile}s that are in this directory.
      */
-    public List<StFile> listFiles() {
+    public CompletableFuture<List<StFile>> listFilesAsync() {
         // Listing files for a directory, then collecting them into a map
-        Map<String, List<FileWithInfo>> fileGroups = locationLister
-            .listAllFiles(relativePath).stream()
-            .map(FileWithInfo::into)
-            .collect(Collectors.groupingBy(f -> f.sortName));
-        // Then turn this into a map of StFileGroups
-        List<StFile> children = new ArrayList<>();
-        for (List<FileWithInfo> fileList : fileGroups.values()) {
-            var fileZero = fileList.get(0);
-            Path path = relativePath.resolve(fileZero.nameFixed);
-            // The map is sorted both by the name of the file, and if it's a directory or not.
-            // Because of that, we are able to just check if the first file in the list is a dir.
-            if (fileZero.isDir) {
-                // If we have a directory, we only need to show it in the tree once.
-                Location mainLoc = fileList
-                    .stream() // Take all the dirs that match this path and stream them
-                    .map(f -> f.loc) // Map to the location type.
-                    .distinct().sorted() // Sort so the first in the list is the one we want to represent.
-                    .toList().get(0); // Take the first option in the list.
-                // Resolve the path of the new directory.
-                // Lastly, all we got to do is put this info into the
-                children.add(new StDirectory(localStFolder, locationLister, path, mainLoc));
-            } else {
-                // To start, make a new file group.
-                StFileGroup fileGroup = new StFileGroup(localStFolder, path);
-                // Then, for each file in the list, add a new file to the file group
-                for (FileWithInfo file : fileList)
-                    fileGroup.add(fileGroup.new File(file.loc, file.timestamp));
-                // And lastly, add it to the final result
-                children.add(fileGroup);
-            }
-        }
-        return children;
+        return locationLister
+            .listAllFiles(relativePath)
+            .thenApplyAsync(files -> {
+                Map<String, List<FileWithInfo>> fileGroups = files
+                    .stream()
+                    .map(FileWithInfo::into)
+                    .collect(Collectors.groupingBy(f -> f.sortName));
+                // Then turn this into a map of StFileGroups
+                List<StFile> children = new ArrayList<>();
+                for (List<FileWithInfo> fileList : fileGroups.values()) {
+                    var fileZero = fileList.get(0);
+                    Path path = relativePath.resolve(fileZero.nameFixed);
+                    // The map is sorted both by the name of the file, and if it's a directory or not.
+                    // Because of that, we are able to just check if the first file in the list is a dir.
+                    if (fileZero.isDir) {
+                        // If we have a directory, we only need to show it in the tree once.
+                        Location mainLoc = fileList
+                            .stream() // Take all the dirs that match this path and stream them
+                            .map(f -> f.loc) // Map to the location type.
+                            .distinct().sorted() // Sort so the first in the list is the one we want to represent.
+                            .toList().get(0); // Take the first option in the list.
+                        // Resolve the path of the new directory.
+                        // Lastly, all we got to do is put this info into the
+                        children.add(new StDirectory(localStFolder, locationLister, path, mainLoc));
+                    } else {
+                        // To start, make a new file group.
+                        StFileGroup fileGroup = new StFileGroup(localStFolder, path);
+                        // Then, for each file in the list, add a new file to the file group
+                        for (FileWithInfo file : fileList)
+                            fileGroup.add(fileGroup.new File(file.loc, file.timestamp));
+                        // And lastly, add it to the final result
+                        children.add(fileGroup);
+                    }
+                }
+                return children;
+            });
     }
 
     /**

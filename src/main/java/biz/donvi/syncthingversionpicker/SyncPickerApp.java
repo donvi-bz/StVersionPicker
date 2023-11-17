@@ -8,12 +8,16 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class SyncPickerApp extends Application {
 
     private static SyncPickerApp application;
 
     SyncthingScraper syncScraper;
+    public ExecutorService pool = Executors.newFixedThreadPool(1);
 
     private FXMLLoader pickerLoader;
     private Stage stage;
