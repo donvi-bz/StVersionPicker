@@ -51,6 +51,8 @@ public class RemoteLister implements LocationLister.Lister {
         }
     }
 
+
+
     private static boolean isValidFolder(LsEntry f) {
         return !(f.getFilename().equals(".") || f.getFilename().equals(".."));
     }
@@ -64,6 +66,8 @@ public class RemoteLister implements LocationLister.Lister {
             try {
                 files = channelSftp.ls(dir);
             } catch (SftpException e) {
+                if (!relativeDirectory.toString().isEmpty() && e.id == 2)
+                    return List.of();
                 System.out.println(dir);
                 e.printStackTrace();
                 return List.of();

@@ -10,13 +10,12 @@ import javafx.stage.Stage;
 import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class SyncPickerApp extends Application {
 
     private static SyncPickerApp application;
 
-    SyncthingScraper syncScraper;
+    SyncthingScraper localSyncScraper;
     public ExecutorService pool = Executors.newFixedThreadPool(1);
 
     private FXMLLoader pickerLoader;
@@ -30,7 +29,7 @@ public class SyncPickerApp extends Application {
         Application.setUserAgentStylesheet(new PrimerLight().getUserAgentStylesheet());
         FXMLLoader homeLoader = new FXMLLoader(SyncPickerApp.class.getResource("home-view.fxml"));
         pickerLoader = new FXMLLoader(SyncPickerApp.class.getResource("picker-view.fxml"));
-        Scene scene = new Scene(homeLoader.load(), 320, 240);
+        Scene scene = new Scene(homeLoader.load(), 600, 400);
         stage.setTitle("Hello!");
         stage.setScene(scene);
         stage.show();

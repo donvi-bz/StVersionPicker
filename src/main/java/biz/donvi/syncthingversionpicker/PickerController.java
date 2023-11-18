@@ -20,11 +20,10 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.ResourceBundle;
-import java.util.concurrent.CompletableFuture;
 
 public class PickerController implements Initializable {
 
-    private final SyncthingScraper syncScraper = SyncPickerApp.getApplication().syncScraper;
+    private final SyncthingScraper syncScraper = SyncPickerApp.getApplication().localSyncScraper;
 
     private ObservableList<StFolder> textFlows;
 
