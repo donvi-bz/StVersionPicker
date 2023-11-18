@@ -16,7 +16,6 @@ public class SyncPickerApp extends Application {
     private static SyncPickerApp application;
 
     SyncthingScraper localSyncScraper;
-    public ExecutorService pool = Executors.newFixedThreadPool(1);
 
     private FXMLLoader pickerLoader;
     private Stage stage;
