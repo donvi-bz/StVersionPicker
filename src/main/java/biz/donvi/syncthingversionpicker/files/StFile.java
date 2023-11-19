@@ -2,6 +2,8 @@ package biz.donvi.syncthingversionpicker.files;
 
 import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.SftpException;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -47,9 +49,14 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      * @param localStFolder The base Syncthing folder
      * @return A new {@link StDirectory} that represents the root directory of the Syncthing folder.
      */
-    public static StDirectory newDirFromStFolder(StFolder localStFolder) {
+    public static StDirectory newDirFromStFolder(StFolder localStFolder, RemoteLister remoteLister) {
         LocationLister lister = new LocationLister(Path.of(localStFolder.path()));
-        lister.setLister(Location.RemoteVersions, new RemoteLister());
+        try {
+            remoteLister.setupConnection(Path.of("/red/Notes (Britt & Skibs)/.stversions"));
+        } catch (JSchException | SftpException e) {
+            throw new RuntimeException(e);
+        }
+        lister.setLister(Location.RemoteVersions, remoteLister);
         return new StDirectory(localStFolder, lister, Paths.get(""), Location.LocalReal);
     }
 

@@ -1,13 +1,14 @@
 package biz.donvi.syncthingversionpicker.remoteaccess;
 
+import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.files.LocationLister;
 import biz.donvi.syncthingversionpicker.files.StFile;
 import com.jcraft.jsch.*;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
-import java.io.File;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Vector;
 import java.util.concurrent.CompletableFuture;
@@ -22,27 +23,27 @@ public class RemoteLister implements LocationLister.Lister {
     private final int    port;
     private final String user;
     private final String pass;
-    private final Path   rootDir;
     private final Path   pathToKey;
 
+    private Path        rootDir     = null;
     private Session     session     = null;
     private Channel     channel     = null;
     private ChannelSftp channelSftp = null;
 
     public RemoteLister(
         String user, String host, int port,
-        String pass, Path rootDir, Path pathToKey
+        String pass, Path pathToKey
     ) throws JSchException, SftpException {
         this.host = host;
         this.port = port;
         this.user = user;
         this.pass = pass;
-        this.rootDir = rootDir;
         this.pathToKey = pathToKey;
-        setupConnection();
     }
 
-    private void setupConnection() throws JSchException, SftpException {
+    public void setupConnection(Path rootDir) throws JSchException, SftpException {
+        closeConnections();
+        this.rootDir = rootDir;
         JSch jsch = new JSch();
         File privateKey = pathToKey.toFile();
         if (privateKey.exists() && privateKey.isFile())
@@ -59,9 +60,57 @@ public class RemoteLister implements LocationLister.Lister {
         channelSftp.cd(pathAsStr(rootDir));
     }
 
+//    public StFolder getRemoteFolder(String endpoint, String url, String apiKey) throws JSchException {
+//        Session session;
+//        JSch jsch = new JSch();
+//        File privateKey = pathToKey.toFile();
+//        if (privateKey.exists() && privateKey.isFile())
+//            jsch.addIdentity(pathToKey.toString());
+//        session = jsch.getSession(user, host, port);
+//        session.setPassword(pass);
+//        java.util.Properties config = new java.util.Properties();
+//        config.put("StrictHostKeyChecking", "no");
+//        session.setConfig(config);
+//        session.connect();
+//        Channel channel = session.openChannel("direct-tcpip");
+//        @SuppressWarnings("UnnecessaryStringEscape")
+//        String request = String.format(
+//            """
+//            GET %s HTTP/1.1
+//            X-API-Key: %s
+//            User-Agent: Java/19.0.1
+//            Host: %s
+//            Accept: */*
+//            Connection: keep-alive\r\n\r\n
+//            """, endpoint, apiKey, url);
+//        ((ChannelDirectTCPIP) channel).setHost("127.0.0.1");
+//        ((ChannelDirectTCPIP) channel).setPort(8384);
+//        channel.connect();
+//        try {
+//            OutputStream out = channel.getOutputStream();
+//            out.write(request.getBytes(StandardCharsets.UTF_8));
+//            out.flush();
+//            BufferedReader bin = new BufferedReader(new InputStreamReader(channel.getInputStream()));
+//            System.out.println("================");
+//            System.out.println(request);
+//            System.out.println("----------------");
+//            for (String line; (line = bin.readLine()) != null; ) {
+//                System.out.println(line);
+//            }
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        System.out.println("================");
+//
+//        return null;
+//    }
+
+
     private void closeConnections() {
         if (session != null) session.disconnect();
         if (channel != null) channel.disconnect();
+        session = null;
+        channel = null;
     }
 
     private boolean validateConnections() {
@@ -72,7 +121,7 @@ public class RemoteLister implements LocationLister.Lister {
     private void ensureConnection() {
         if (!validateConnections()) {
             try {
-                setupConnection();
+                setupConnection(rootDir);
             } catch (JSchException | SftpException e) {
                 System.err.println("Failed to ensure connection was up.");
                 e.printStackTrace();

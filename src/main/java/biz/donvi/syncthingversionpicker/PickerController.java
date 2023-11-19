@@ -23,7 +23,8 @@ import java.util.ResourceBundle;
 
 public class PickerController implements Initializable {
 
-    private final SyncthingScraper syncScraper = SyncPickerApp.getApplication().localSyncScraper;
+
+
 
     private ObservableList<StFolder> textFlows;
 
@@ -38,6 +39,7 @@ public class PickerController implements Initializable {
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        SyncPickerApp app = SyncPickerApp.getApplication();
         comboBox.setCellFactory(c -> new ListCell<>() {
             @Override
             protected void updateItem(StFolder item, boolean empty) {
@@ -59,7 +61,7 @@ public class PickerController implements Initializable {
                 }
             }
         });
-        comboBox.setItems(syncScraper.getFolders());
+        comboBox.setItems(app.localSyncScraper.getFolders());
 
         fileGroupList.setCellFactory(c -> new ListCell<>() {
             @Override
@@ -100,7 +102,10 @@ public class PickerController implements Initializable {
 
     @FXML
     void onComboBoxChange() {
-        StDirectory rootFile = StFile.newDirFromStFolder(comboBox.getValue());
+        StDirectory rootFile = StFile.newDirFromStFolder(
+            comboBox.getValue(),
+            SyncPickerApp.getApplication().remoteLister
+        );
         var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 
         // Setting Cell Factory

@@ -2,6 +2,7 @@ package biz.donvi.syncthingversionpicker;
 
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
+import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -16,6 +17,8 @@ public class SyncPickerApp extends Application {
     private static SyncPickerApp application;
 
     SyncthingScraper localSyncScraper;
+    SyncthingScraper remoteSyncScraper;
+    RemoteLister remoteLister;
 
     private FXMLLoader pickerLoader;
     private Stage stage;

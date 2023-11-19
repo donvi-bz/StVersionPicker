@@ -25,7 +25,7 @@
         <InputGroup maxWidth="1.7976931348623157E308" minHeight="-Infinity">
             <children>
                 <Label minWidth="-Infinity" text="URL" />
-                <TextField fx:id="remoteSyncthingUrl" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="10000.0" promptText="Syncthing URL" text="http://127.0.0.1:8384" />
+                <TextField fx:id="remoteSyncthingUrl" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="10000.0" promptText="Syncthing URL" text="https://192.168.68.5:8384" />
                 <Label minWidth="-Infinity" text="API Key" />
                 <TextField fx:id="remoteSyncthingApiKey" maxWidth="1.7976931348623157E308" prefWidth="10120.0" promptText="API Key" text="Dsi7UuwNwPzD9XfUnHPUCPjTkKcYUZza" />
             </children>
@@ -33,18 +33,18 @@
         <InputGroup maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="556.0">
             <children>
                 <Label minWidth="-Infinity" text="SSH" />
-                <TextField alignment="CENTER_RIGHT" minWidth="0.0" prefHeight="25.0" prefWidth="10000.0" promptText="Syncthing URL" text="main" fx:id="sshUser" />
+                <TextField fx:id="sshUser" alignment="CENTER_RIGHT" minWidth="0.0" prefHeight="25.0" prefWidth="10000.0" promptText="Syncthing URL" text="main" />
                 <Label minWidth="-Infinity" text="\@" />
-                <TextField maxWidth="1.7976931348623157E308" prefWidth="10100.0" promptText="API Key" text="192.168.68.5" fx:id="shhAddress" />
+                <TextField fx:id="shhAddress" maxWidth="1.7976931348623157E308" prefWidth="10100.0" promptText="API Key" text="192.168.68.5" />
                 <Label minWidth="-Infinity" text=":" />
-                <TextField maxWidth="1.7976931348623157E308" prefHeight="32.0" prefWidth="9921.0" promptText="API Key" text="20" fx:id="sshPort" />
+                <TextField fx:id="sshPort" maxWidth="1.7976931348623157E308" prefHeight="32.0" prefWidth="9921.0" promptText="API Key" text="22" />
             </children>
         </InputGroup>
 
         <InputGroup maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="556.0">
             <children>
                 <Label minWidth="-Infinity" text="SSH Password" />
-            <PasswordField prefHeight="32.0" prefWidth="10000.0" fx:id="sshPassword"/>
+            <PasswordField fx:id="sshPassword" prefHeight="32.0" prefWidth="10000.0" />
             </children>
         </InputGroup>
       <HBox alignment="CENTER" prefHeight="59.0" prefWidth="556.0">
