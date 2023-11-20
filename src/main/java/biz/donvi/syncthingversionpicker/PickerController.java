@@ -4,6 +4,7 @@ import atlantafx.base.theme.Styles;
 import biz.donvi.syncthingversionpicker.files.StDirectory;
 import biz.donvi.syncthingversionpicker.files.StFile;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -19,17 +20,62 @@ import org.kordamp.ikonli.javafx.FontIcon;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 import java.util.ResourceBundle;
 
 public class PickerController implements Initializable {
 
+    public record DoubleStFolder(StFolder local, StFolder remote) {
 
+        @Override
+        public String toString() {
+            return first().toString();
+        }
+
+        StFolder first() {
+            if (local != null)
+                return local;
+            else return remote;
+        }
+
+        String label() {
+            if (local != null)
+                return local.label();
+            if (remote != null)
+                return remote.label();
+            return "!";
+        }
+
+        String id() {
+            if (local != null && remote != null)
+                return local.id() + " (local & remote)";
+            if (local != null)
+                return local.id() + " (local)";
+            if (remote != null)
+                return remote.id() + " (remote)";
+            return "!";
+        }
+
+        static ObservableList<DoubleStFolder> combine(List<StFolder> locals, List<StFolder> remotes) {
+            HashMap<String, DoubleStFolder> map = new HashMap<>();
+            for (var local : locals)
+                map.put(local.id(), new DoubleStFolder(local, null));
+            DoubleStFolder d;
+            for (var remote : remotes)
+                if ((d = map.get(remote.id())) != null)
+                    map.put(remote.id(), new DoubleStFolder(d.local, remote));
+                else
+                    map.put(remote.id(), new DoubleStFolder(null, remote));
+            return FXCollections.observableArrayList(map.values().stream().toList());
+        }
+    }
 
 
     private ObservableList<StFolder> textFlows;
 
     @FXML
-    private ComboBox<StFolder> comboBox;
+    private ComboBox<DoubleStFolder> comboBox;
 
     @FXML
     private TreeView<StFile> treeView;
@@ -42,7 +88,7 @@ public class PickerController implements Initializable {
         SyncPickerApp app = SyncPickerApp.getApplication();
         comboBox.setCellFactory(c -> new ListCell<>() {
             @Override
-            protected void updateItem(StFolder item, boolean empty) {
+            protected void updateItem(DoubleStFolder item, boolean empty) {
                 super.updateItem(item, empty);
 
                 if (item == null || empty) {
@@ -61,7 +107,10 @@ public class PickerController implements Initializable {
                 }
             }
         });
-        comboBox.setItems(app.localSyncScraper.getFolders());
+        comboBox.setItems(DoubleStFolder.combine(
+            app.localSyncScraper.getFolders(),
+            app.remoteSyncScraper.getFolders()
+        ));
 
         fileGroupList.setCellFactory(c -> new ListCell<>() {
             @Override
@@ -161,7 +210,7 @@ public class PickerController implements Initializable {
         if (!recursive)
             parent.addEventHandler(TreeItem.branchExpandedEvent(), treeItemEventHandler);
         // Adding Data. We have to do each location separately.
-        parentDir.listFilesAsync().thenAcceptAsync(files -> {
+        parentDir.listFilesAsync().thenAcceptAsync(files -> Platform.runLater(() -> {
             // Now the logic for adding files once we actually get them.
             var children = parent.getChildren();
             for (StFile file : files) {
@@ -171,7 +220,7 @@ public class PickerController implements Initializable {
                 children.add(item);
             }
             parent.getChildren().sort(Comparator.comparing(TreeItem::getValue));
-        });
+        }));
     }
 
     void fileScannerAndAdder2(TreeItem<StFile> parent) {

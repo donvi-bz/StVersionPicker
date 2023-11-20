@@ -161,6 +161,10 @@ public class RemoteLister implements LocationLister.Lister {
     }
 
     private static boolean isValidFolder(LsEntry f) {
-        return !(f.getFilename().equals(".") || f.getFilename().equals(".."));
+        return !(
+            f.getFilename().equals(".") ||
+            f.getFilename().equals("..") ||
+            f.getFilename().equals(".stversions") ||
+            f.getFilename().equals(".stfolder"));
     }
 }

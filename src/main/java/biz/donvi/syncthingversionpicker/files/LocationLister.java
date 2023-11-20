@@ -21,6 +21,8 @@ public class LocationLister {
     private Lister remoteRealLister     = DEFAULT_LISTER;
     private Lister remoteVersionsLister = DEFAULT_LISTER;
 
+    public LocationLister() {}
+
     public LocationLister(Path root) {
         this.localRealLister = makeLocalListerForPath(root, Location.LocalReal);
         this.localVersionsLister = makeLocalListerForPath(root.resolve(STV), Location.LocalVersions);

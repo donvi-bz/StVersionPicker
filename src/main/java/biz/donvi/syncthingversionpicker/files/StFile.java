@@ -1,5 +1,6 @@
 package biz.donvi.syncthingversionpicker.files;
 
+import biz.donvi.syncthingversionpicker.PickerController;
 import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import com.jcraft.jsch.JSchException;
@@ -7,6 +8,7 @@ import com.jcraft.jsch.SftpException;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 /**
  * A {@code StFile} represents either a file with multiple version, or a directory.
@@ -49,15 +51,19 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      * @param localStFolder The base Syncthing folder
      * @return A new {@link StDirectory} that represents the root directory of the Syncthing folder.
      */
-    public static StDirectory newDirFromStFolder(StFolder localStFolder, RemoteLister remoteLister) {
-        LocationLister lister = new LocationLister(Path.of(localStFolder.path()));
+    public static StDirectory newDirFromStFolder(PickerController.DoubleStFolder folder, RemoteLister remoteLister) {
+        var localPath = Optional.ofNullable(folder.local()).map(StFolder::path).map(Path::of);
+        var remotePath = Optional.ofNullable(folder.remote()).map(StFolder::path).map(Path::of);
+        LocationLister lister = localPath.map(LocationLister::new).orElseGet(LocationLister::new);
         try {
-            remoteLister.setupConnection(Path.of("/red/Notes (Britt & Skibs)/.stversions"));
+            if (remotePath.isPresent()) {
+                remoteLister.setupConnection(remotePath.get());
+                lister.setLister(Location.RemoteVersions, remoteLister);
+            }
         } catch (JSchException | SftpException e) {
             throw new RuntimeException(e);
         }
-        lister.setLister(Location.RemoteVersions, remoteLister);
-        return new StDirectory(localStFolder, lister, Paths.get(""), Location.LocalReal);
+        return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalReal);
     }
 
     /**
