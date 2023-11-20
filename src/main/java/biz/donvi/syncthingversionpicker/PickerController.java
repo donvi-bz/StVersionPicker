@@ -146,16 +146,6 @@ public class PickerController implements Initializable {
                 }
             }
         });
-        fileGroupList.getStyleClass().add(Styles.DENSE);
-    }
-
-    @FXML
-    void onComboBoxChange() {
-        StDirectory rootFile = StFile.newDirFromStFolder(
-            comboBox.getValue(),
-            SyncPickerApp.getApplication().remoteLister
-        );
-        var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 
         // Setting Cell Factory
         treeView.setCellFactory(c -> new TreeCell<StFile>() {
@@ -189,6 +179,18 @@ public class PickerController implements Initializable {
                 fileGroupList.setItems(FXCollections.observableArrayList(fileGroup.getFiles()));
             }
         });
+
+        fileGroupList.getStyleClass().add(Styles.DENSE);
+    }
+
+    @FXML
+    void onComboBoxChange() {
+        StDirectory rootFile = StFile.newDirFromStFolder(
+            comboBox.getValue(),
+            SyncPickerApp.getApplication().remoteLister
+        );
+        var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
+
 
         scanAndAddFiles(root);
         // Adding styles
