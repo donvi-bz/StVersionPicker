@@ -4,6 +4,7 @@ import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
@@ -40,7 +41,9 @@ public class SyncPickerApp extends Application {
     public static SyncPickerApp getApplication() { return application; }
 
     public void setPickerStage() throws IOException {
-        stage.setScene(new Scene(pickerLoader.load(), 800, 400));
+        Scene scene = new Scene(pickerLoader.load(), 1000, 500);
+        scene.getStylesheets().add("/biz/donvi/syncthingversionpicker/style.css");
+        stage.setScene(scene);
     }
 
     public static void main(String[] args) {

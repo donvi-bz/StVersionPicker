@@ -3,6 +3,7 @@ package biz.donvi.syncthingversionpicker;
 import atlantafx.base.theme.Styles;
 import biz.donvi.syncthingversionpicker.files.StDirectory;
 import biz.donvi.syncthingversionpicker.files.StFile;
+import biz.donvi.syncthingversionpicker.files.StFile.Location;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -11,6 +12,7 @@ import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.kordamp.ikonli.evaicons.Evaicons;
@@ -26,7 +28,7 @@ import java.util.ResourceBundle;
 
 public class PickerController implements Initializable {
 
-    public record DoubleStFolder(StFolder local, StFolder remote) {
+    public record DoubleStFolder(StFolder local, StFolder remote) implements Comparable<DoubleStFolder> {
 
         @Override
         public String toString() {
@@ -48,12 +50,10 @@ public class PickerController implements Initializable {
         }
 
         String id() {
-            if (local != null && remote != null)
-                return local.id() + " (local & remote)";
             if (local != null)
-                return local.id() + " (local)";
+                return local.id();
             if (remote != null)
-                return remote.id() + " (remote)";
+                return remote.id();
             return "!";
         }
 
@@ -67,7 +67,12 @@ public class PickerController implements Initializable {
                     map.put(remote.id(), new DoubleStFolder(d.local, remote));
                 else
                     map.put(remote.id(), new DoubleStFolder(null, remote));
-            return FXCollections.observableArrayList(map.values().stream().toList());
+            return FXCollections.observableArrayList(map.values().stream().sorted().toList());
+        }
+
+        @Override
+        public int compareTo(DoubleStFolder o) {
+            return this.label().compareTo(o.label());
         }
     }
 
@@ -94,7 +99,8 @@ public class PickerController implements Initializable {
                 if (item == null || empty) {
                     setGraphic(null);
                 } else {
-                    TextFlow flow = new TextFlow();
+                    TextFlow outerTextFlow = new TextFlow();
+
                     Text title = new Text(item.label());
                     title.setStyle("-fx-font-weight: bold");
 
@@ -102,8 +108,21 @@ public class PickerController implements Initializable {
                     id.setStyle("-fx-font-weight: regular");
                     id.setStyle("-fx-font-family: Monospaced");
 
-                    flow.getChildren().addAll(title, id);
-                    setGraphic(flow);
+                    outerTextFlow.getChildren().addAll(title, id);
+
+                    if (item.local != null) {
+                        TextFlow localBadge = new TextFlow(new Text("local"));
+                        localBadge.getStyleClass().addAll("badge", "b-blue");
+                        outerTextFlow.getChildren().addAll(localBadge, new Text(" "));
+                    }
+                    if (item.remote != null) {
+                        TextFlow remoteBadge = new TextFlow(new Text("remote"));
+                        remoteBadge.getStyleClass().addAll("badge", "b-purple");
+                        outerTextFlow.getChildren().add(remoteBadge);
+                    }
+
+
+                    setGraphic(outerTextFlow);
                 }
             }
         });
@@ -129,7 +148,7 @@ public class PickerController implements Initializable {
                         case RemoteVersions -> graphic.getStyleClass().add(Styles.ACCENT);
                     }
                     setGraphic(graphic);
-                    if (item.location == StFile.Location.LocalReal)
+                    if (item.location == Location.LocalReal)
                         setText("Current Version");
                     else
                         setText(item.getTimeStamp() + "\t|   " + item.getTimeAgo(LocalDateTime.now()));
@@ -149,6 +168,26 @@ public class PickerController implements Initializable {
 
         // Setting Cell Factory
         treeView.setCellFactory(c -> new TreeCell<StFile>() {
+
+            private final FontIcon folderGraphic = new FontIcon(Evaicons.FOLDER);
+            private final FontIcon fileGraphic = new FontIcon(Evaicons.FILE);
+
+            private final HBox outerBox = new HBox();
+            private final Text fileName = new Text();
+            private final TextFlow localFlow = new TextFlow();
+            private final Text localText = new Text();
+            private final TextFlow remoteFlow = new TextFlow();
+            private final Text remoteText = new Text();
+
+            {
+                localFlow.getChildren().add(localText);
+                localFlow.getStyleClass().addAll("badge", "b-blue");
+                remoteFlow.getChildren().add(remoteText);
+                remoteFlow.getStyleClass().addAll("badge", "b-purple");
+                outerBox.setSpacing(4);
+                outerBox.getChildren().addAll(folderGraphic, fileName, localFlow, remoteFlow);
+            }
+
             @Override
             protected void updateItem(StFile file, boolean empty) {
                 super.updateItem(file, empty);
@@ -157,20 +196,38 @@ public class PickerController implements Initializable {
                     setText(null);
                     setGraphic(null);
                 } else {
-                    var graphic = file instanceof StDirectory
-                        ? new FontIcon(Evaicons.FOLDER)
-                        : new FontIcon(Evaicons.FILE);
-                    String text = file.fileName;
-                    if (file.getPrimaryLocation() != StFile.Location.LocalReal) {
-                        graphic.getStyleClass().add(Styles.WARNING);
-                    } else if (file instanceof StFileGroup fileGroup && fileGroup.hasNonRealLocalFiles()) {
-                        text += " (" + (fileGroup.getFiles().size() - 1) + ")";
-                        graphic.getStyleClass().add(Styles.ACCENT);
+                    setText("");
+                    setGraphic(outerBox);
+                    fileName.setText(file.fileName);
+                    if (file instanceof StFileGroup group) {
+                        if (!outerBox.getChildren().isEmpty())
+                            outerBox.getChildren().set(0, fileGraphic);
+                        setOrHideFlow(Location.LocalVersions, group.countFiles(Location.LocalVersions));
+                        setOrHideFlow(Location.RemoteVersions, group.countFiles(Location.RemoteVersions));
+                    } else {
+                        if (!outerBox.getChildren().isEmpty())
+                            outerBox.getChildren().set(0, folderGraphic);
+                        setOrHideFlow(Location.LocalVersions, 0);
+                        setOrHideFlow(Location.RemoteVersions, 0);
                     }
-                    setText(text);
-                    setGraphic(graphic);
                 }
             }
+
+            private void setOrHideFlow(Location loc, long count) {
+                var correctText = switch (loc) {
+                    case LocalVersions -> localText;
+                    case RemoteVersions -> remoteText;
+                    case LocalReal, RemoteReal -> null;
+                };
+                assert correctText != null; // That should be checked at compile time by the dev.
+                var correctTextParent = correctText.getParent();
+                outerBox.getChildren().remove(correctTextParent);
+                if (count > 0) {
+                    outerBox.getChildren().add(correctTextParent);
+                    correctText.setText(String.valueOf(count));
+                }
+            }
+
         });
         treeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null) {

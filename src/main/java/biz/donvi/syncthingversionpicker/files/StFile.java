@@ -44,7 +44,7 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
     static final String STV = ".stversions";
     static final String STF = ".stfolder";
 
-    /**
+    /** <b>FIXME: OUTDATED</b><br/>
      * Creates a new root directory from a {@link StFolder}.
      * This method is the only way for a non-{@link StFile} class to make an instance of a {@link StFile} class.
      *

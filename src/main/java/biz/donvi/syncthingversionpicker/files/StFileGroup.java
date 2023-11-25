@@ -6,10 +6,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public final class StFileGroup extends StFile {
 
@@ -42,6 +39,11 @@ public final class StFileGroup extends StFile {
             .map(f -> f.location)
             .distinct()
             .anyMatch(f -> f != Location.LocalReal);
+    }
+
+    public long countFiles(Location... locations) {
+        EnumSet<Location> locs = EnumSet.of(locations[0], locations);
+        return files.stream().filter(f -> locs.contains(f.location)).count();
     }
 
     @Override
