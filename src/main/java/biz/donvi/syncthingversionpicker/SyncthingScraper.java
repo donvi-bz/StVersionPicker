@@ -15,6 +15,8 @@ import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
+import static java.net.HttpURLConnection.HTTP_OK;
+
 public class SyncthingScraper {
 
     public static final String ST_LIST_FOLDERS = "/rest/config/folders";
@@ -53,6 +55,24 @@ public class SyncthingScraper {
     public SyncthingScraper(String url, String apiKey) {
         this.url = url;
         this.apikey = apiKey;
+    }
+
+    public String testConnection() {
+        try {
+            URL url = new URL(this.url + ST_LIST_FOLDERS);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            if (con instanceof HttpsURLConnection httpsCon) {
+                httpsCon.setHostnameVerifier((hostname, sslSession) -> true);
+            }
+            con.setRequestProperty("X-API-Key", apikey);
+            con.connect();
+            int res = con.getResponseCode();
+            return res == HTTP_OK
+                ? "Connected"
+                : "%d %s".formatted(res, con.getResponseMessage());
+        } catch (IOException e) {
+            return e.getLocalizedMessage();
+        }
     }
 
     private <T> T getEndpoint(String endpoint, Class<T> clazz) throws IOException {

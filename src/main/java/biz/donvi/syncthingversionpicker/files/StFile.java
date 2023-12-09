@@ -48,20 +48,19 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      * Creates a new root directory from a {@link StFolder}.
      * This method is the only way for a non-{@link StFile} class to make an instance of a {@link StFile} class.
      *
-     * @param localStFolder The base Syncthing folder
      * @return A new {@link StDirectory} that represents the root directory of the Syncthing folder.
      */
     public static StDirectory newDirFromStFolder(PickerController.DoubleStFolder folder, RemoteLister remoteLister) {
         var localPath = Optional.ofNullable(folder.local()).map(StFolder::path).map(Path::of);
         var remotePath = Optional.ofNullable(folder.remote()).map(StFolder::path).map(Path::of);
         LocationLister lister = localPath.map(LocationLister::new).orElseGet(LocationLister::new);
-        try {
-            if (remotePath.isPresent()) {
-                remoteLister.setupConnection(remotePath.get());
-                lister.setLister(Location.RemoteVersions, remoteLister);
-            }
-        } catch (JSchException | SftpException e) {
-            throw new RuntimeException(e);
+        if (remotePath.isPresent()) {
+            remoteLister.setupSessionAndChannelAsync(remotePath.get()).thenAcceptAsync(e -> {
+                if (e.isPresent()) {
+                    // TODO: do something?
+                }
+            });
+            lister.setLister(Location.RemoteVersions, remoteLister);
         }
         return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalReal);
     }
