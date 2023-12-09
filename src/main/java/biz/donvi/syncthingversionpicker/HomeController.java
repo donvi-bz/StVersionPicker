@@ -90,12 +90,12 @@ public class HomeController {
                 localSyncthingApiKey.getText()
             );
             return scraper.testConnection();
-        }).thenAccept(responseStr -> Platform.runLater(() -> {
+        }).thenAcceptAsync(responseStr -> {
             if (currentNum < localSyncTestCount)
                 return;
             localSyncthingTestBtn.setText("Test Connection");
             localSyncthingTestAnswer.setText(responseStr);
-        }));
+        }, Platform::runLater);
     }
 
     @FXML
@@ -109,12 +109,12 @@ public class HomeController {
                 remoteSyncthingApiKey.getText()
             );
             return scraper.testConnection();
-        }).thenAccept(responseStr -> Platform.runLater(() -> {
+        }).thenAcceptAsync(responseStr ->  {
             if (currentNum < remoteSyncTestCount)
                 return;
             remoteSyncthingTestBtn.setText("Test Connection");
             remoteSyncthingTestAnswer.setText(responseStr);
-        }));
+        }, Platform::runLater);
     }
 
 
@@ -128,10 +128,10 @@ public class HomeController {
         );
         checkText.setText("Testing...");
         btnCheckText.setDisable(true);
-        remoteLister.setupSessionAsync().thenAcceptAsync(e -> Platform.runLater(() -> {
+        remoteLister.setupSessionAsync().thenAcceptAsync(e -> {
             String message = e.isEmpty() ? "Connected" : e.get().getLocalizedMessage();
             checkText.setText(message);
             btnCheckText.setDisable(false);
-        }));
+        }, Platform::runLater);
     }
 }

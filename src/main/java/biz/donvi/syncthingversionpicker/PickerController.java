@@ -269,7 +269,7 @@ public class PickerController implements Initializable {
         if (!recursive)
             parent.addEventHandler(TreeItem.branchExpandedEvent(), treeItemEventHandler);
         // Adding Data. We have to do each location separately.
-        parentDir.listFilesAsync().thenAcceptAsync(files -> Platform.runLater(() -> {
+        parentDir.listFilesAsync().thenAcceptAsync(files -> {
             // Now the logic for adding files once we actually get them.
             var children = parent.getChildren();
             for (StFile file : files) {
@@ -279,7 +279,7 @@ public class PickerController implements Initializable {
                 children.add(item);
             }
             parent.getChildren().sort(Comparator.comparing(TreeItem::getValue));
-        }));
+        }, Platform::runLater);
     }
 
     void fileScannerAndAdder2(TreeItem<StFile> parent) {
