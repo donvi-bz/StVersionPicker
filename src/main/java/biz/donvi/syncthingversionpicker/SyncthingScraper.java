@@ -57,7 +57,9 @@ public class SyncthingScraper {
         this.apikey = apiKey;
     }
 
-    public String testConnection() {
+    public record TestResult(boolean valid, String msg, SyncthingScraper self) {}
+
+    public TestResult testConnection() {
         try {
             URL url = new URL(this.url + ST_LIST_FOLDERS);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -68,10 +70,10 @@ public class SyncthingScraper {
             con.connect();
             int res = con.getResponseCode();
             return res == HTTP_OK
-                ? "Connected"
-                : "%d %s".formatted(res, con.getResponseMessage());
+                ? new TestResult(true, "Connected", this)
+                : new TestResult(false, "%d %s".formatted(res, con.getResponseMessage()), this);
         } catch (IOException e) {
-            return e.getLocalizedMessage();
+            return new TestResult(false, e.getLocalizedMessage(), this);
         }
     }
 
