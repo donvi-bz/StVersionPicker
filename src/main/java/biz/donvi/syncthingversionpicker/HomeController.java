@@ -3,7 +3,6 @@ package biz.donvi.syncthingversionpicker;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
@@ -37,8 +36,8 @@ public class HomeController {
     @FXML private TextField     shhAddress;
     @FXML private TextField     sshPort;
     @FXML private PasswordField sshPassword;
-    @FXML private Text          checkText;
-    @FXML private Button        btnCheckText;
+    @FXML private Text          sshTestBtn;
+    @FXML private Text          sshTestAnswer;
 
     RemoteLister remoteLister;
 
@@ -46,6 +45,7 @@ public class HomeController {
     public void initialize() {
         clearLocalSyncthingAnswer();
         clearRemoteSyncthingAnswer();
+        clearSshTestAnswer();
     }
 
     @FXML
@@ -57,20 +57,29 @@ public class HomeController {
             testSsh()
         };
         CompletableFuture.allOf(futures).thenApplyAsync(results -> {
-            if (Arrays.stream(futures).allMatch(CompletableFuture::resultNow)) try {
-                // This will throw if its no good.0
-                localSyncthingScraper.updateFolders();
-                remoteSyncthingScraper.updateFolders();
-                // Put in global state
-                SyncPickerApp app = SyncPickerApp.getApplication();
-                app.localSyncScraper = localSyncthingScraper;
-                app.remoteSyncScraper = remoteSyncthingScraper;
-                app.remoteLister = remoteLister;
-                return app;
+            try {
+                if (Arrays.stream(futures).allMatch(CompletableFuture::resultNow)) {
+                    // This will throw if its no good.0
+                    localSyncthingScraper.updateFolders();
+                    remoteSyncthingScraper.updateFolders();
+                    // Put in global state
+                    SyncPickerApp app = SyncPickerApp.getApplication();
+                    app.localSyncScraper = localSyncthingScraper;
+                    app.remoteSyncScraper = remoteSyncthingScraper;
+                    app.remoteLister = remoteLister;
+                    return app;
+                } else if (futures[0].resultNow()) {
+                    // TODO: make this better
+                    localSyncthingScraper.updateFolders();
+                    SyncPickerApp app = SyncPickerApp.getApplication();
+                    app.localSyncScraper = localSyncthingScraper;
+                    app.remoteSyncScraper = SyncthingScraper.EmptyScraper;
+                    return app;
+                } else {
+                    return null;
+                }
             } catch (IOException e) {
                 throw new RuntimeException(e);
-            } else {
-                return null;
             }
         }).thenApplyAsync(app -> {
             if (app == null) return -1;
@@ -93,6 +102,11 @@ public class HomeController {
     protected void clearRemoteSyncthingAnswer() {
         remoteSyncthingTestAnswer.setText("");
         remoteSyncthingScraperValid = false;
+    }
+
+    @FXML
+    protected void clearSshTestAnswer() {
+        sshTestAnswer.setText("");
     }
 
     protected CompletableFuture<Boolean> testLocalSyncthingIfNecessary() {
@@ -176,12 +190,14 @@ public class HomeController {
             Integer.parseInt(sshPort.getText()),
             sshPassword.getText(), Path.of("")
         );
-        checkText.setText("Testing...");
-        btnCheckText.setDisable(true);
+        sshTestBtn.setText("Testing...");
+        sshTestBtn.setDisable(true);
+        sshTestAnswer.setText("");
         return remoteLister.setupSessionAsync().thenApplyAsync(e -> {
             String message = e.isEmpty() ? "Connected" : e.get().getLocalizedMessage();
-            checkText.setText(message);
-            btnCheckText.setDisable(false);
+            sshTestAnswer.setText(message);
+            sshTestBtn.setText("Test SSH Connection");
+            sshTestBtn.setDisable(false);
             return e.isEmpty();
         }, Platform::runLater);
     }

@@ -218,8 +218,10 @@ public class RemoteLister implements LocationLister.Lister {
 
 
         private void closeConnections() {
-            if (session != null) session.disconnect();
-            if (channel != null) channel.disconnect();
+            if (session != null)
+                session.disconnect();
+            if (channel != null)
+                channel.disconnect();
             session = null;
             channel = null;
         }

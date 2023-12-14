@@ -109,4 +109,17 @@ public class SyncthingScraper {
         return folders.sorted((o1, o2) -> o1.label().compareToIgnoreCase(o2.label()));
     }
 
+
+    public static final SyncthingScraper EmptyScraper = new SyncthingScraper("", "") {
+        @Override
+        public TestResult testConnection() {
+            return new TestResult(true, "This is a fake connection.", this);
+        }
+
+        @Override
+        public void updateFolders() {
+        }
+
+    };
+
 }

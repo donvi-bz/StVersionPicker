@@ -66,19 +66,26 @@
                 <TextField fx:id="sshPort" maxWidth="1.7976931348623157E308" prefHeight="32.0" prefWidth="9921.0" promptText="API Key" text="22" />
             </children>
         </InputGroup>
-
         <InputGroup maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="556.0">
             <children>
                 <Label minWidth="-Infinity" text="SSH Password" />
                 <PasswordField fx:id="sshPassword" prefHeight="32.0" prefWidth="10000.0" />
             </children>
         </InputGroup>
-        <HBox alignment="CENTER_LEFT" spacing="8.0">
+        <TextFlow onMouseClicked="#testSsh" prefWidth="200.0">
             <children>
-                <Button fx:id="btnCheckText" mnemonicParsing="false" onAction="#testSsh" text="Test" />
-                <Text fx:id="checkText" strokeType="OUTSIDE" strokeWidth="0.0" />
+                <Text fx:id="sshTestBtn" strokeType="OUTSIDE" strokeWidth="0.0" text="Test SSH Connection" underline="true">
+                    <cursor>
+                        <Cursor fx:constant="HAND" />
+                    </cursor>
+                </Text>
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" " />
+                <Text fx:id="sshTestAnswer" strokeType="OUTSIDE" strokeWidth="0.0" text="Connected" />
             </children>
-        </HBox>
+            <VBox.margin>
+                <Insets />
+            </VBox.margin>
+        </TextFlow>
         <HBox alignment="CENTER" prefHeight="59.0" prefWidth="556.0">
             <children>
                 <Button alignment="CENTER" contentDisplay="CENTER" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onSubmitApiKeyBtnPress" text="Connect" />
