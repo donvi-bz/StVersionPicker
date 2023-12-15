@@ -1,15 +1,15 @@
 package biz.donvi.syncthingversionpicker.remoteaccess;
 
+import biz.donvi.syncthingversionpicker.SyncPickerApp;
 import biz.donvi.syncthingversionpicker.files.LocationLister;
 import biz.donvi.syncthingversionpicker.files.StFile;
 import com.jcraft.jsch.*;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
-import java.io.*;
+import java.io.File;
+import java.lang.ref.WeakReference;
 import java.nio.file.Path;
-import java.util.List;
-import java.util.Optional;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -23,11 +23,7 @@ public class RemoteLister implements LocationLister.Lister {
     private final String user;
     private final String pass;
     private final Path   pathToKey;
-
-    private Path        rootDir     = null;
-    private Session     session     = null;
-    private Channel     channel     = null;
-    private ChannelSftp channelSftp = null;
+    private final RlInfo rlInfo = new RlInfo();
 
     public RemoteLister(
         String user, String host, int port,
@@ -38,7 +34,9 @@ public class RemoteLister implements LocationLister.Lister {
         this.user = user;
         this.pass = pass;
         this.pathToKey = pathToKey;
+        RlPair.addNew(this);
     }
+
 
     public CompletableFuture<Optional<JSchException>> setupSessionAsync() {
         return CompletableFuture.supplyAsync(() -> {
@@ -63,26 +61,26 @@ public class RemoteLister implements LocationLister.Lister {
     }
 
     private void setupSession() throws JSchException {
-        closeConnections();
+        rlInfo.closeConnections();
         JSch jsch = new JSch();
         File privateKey = pathToKey.toFile();
         if (privateKey.exists() && privateKey.isFile())
             jsch.addIdentity(pathToKey.toString());
-        session = jsch.getSession(user, host, port);
-        session.setPassword(pass);
+        rlInfo.session = jsch.getSession(user, host, port);
+        rlInfo.session.setPassword(pass);
         java.util.Properties config = new java.util.Properties();
         config.put("StrictHostKeyChecking", "no");
-        session.setConfig(config);
-        session.connect(5000); // Hard-coded timeout?
+        rlInfo.session.setConfig(config);
+        rlInfo.session.connect(5000); // Hard-coded timeout?
     }
 
     private void setupSessionAndChannel(Path rootDir) throws JSchException, SftpException {
-        this.rootDir = rootDir;
+        this.rlInfo.rootDir = rootDir;
         setupSession();
-        channel = session.openChannel("sftp");
-        channel.connect();
-        channelSftp = (ChannelSftp) channel;
-        channelSftp.cd(pathAsStr(rootDir));
+        rlInfo.channel = rlInfo.session.openChannel("sftp");
+        rlInfo.channel.connect();
+        rlInfo.channelSftp = (ChannelSftp) rlInfo.channel;
+        rlInfo.channelSftp.cd(pathAsStr(rootDir));
     }
 
 //    public StFolder getRemoteFolder(String endpoint, String url, String apiKey) throws JSchException {
@@ -130,23 +128,10 @@ public class RemoteLister implements LocationLister.Lister {
 //        return null;
 //    }
 
-
-    private void closeConnections() {
-        if (session != null) session.disconnect();
-        if (channel != null) channel.disconnect();
-        session = null;
-        channel = null;
-    }
-
-    private boolean validateConnections() {
-        return session != null && session.isConnected() &&
-               channel != null && channel.isConnected();
-    }
-
     private void ensureConnection() {
-        if (!validateConnections()) {
+        if (!rlInfo.validateConnections()) {
             try {
-                setupSessionAndChannel(rootDir);
+                setupSessionAndChannel(rlInfo.rootDir);
             } catch (JSchException | SftpException e) {
                 System.err.println("Failed to ensure connection was up.");
                 e.printStackTrace();
@@ -160,9 +145,9 @@ public class RemoteLister implements LocationLister.Lister {
         return CompletableFuture.supplyAsync(() -> {
             ensureConnection();
             Vector<LsEntry> files;
-            String dir = pathAsStr(rootDir.resolve(relativeDirectory));
+            String dir = pathAsStr(rlInfo.rootDir.resolve(relativeDirectory));
             try {
-                files = channelSftp.ls(dir);
+                files = rlInfo.channelSftp.ls(dir);
             } catch (SftpException e) {
                 if (!relativeDirectory.toString().isEmpty() && e.id == 2)
                     return List.of();
@@ -191,5 +176,57 @@ public class RemoteLister implements LocationLister.Lister {
             f.getFilename().equals("..") ||
             f.getFilename().equals(".stversions") ||
             f.getFilename().equals(".stfolder"));
+    }
+
+    private record RlPair(WeakReference<RemoteLister> listenerRef, RlInfo info) {
+        private static final ArrayList<RlPair> rls = new ArrayList<>();
+
+        static {
+            SyncPickerApp.registerShutdownOperation(RlPair::shutdown);
+        }
+
+        private static void addNew(RemoteLister lister) {
+            RlPair rl = new RlPair(new WeakReference<>(lister), lister.rlInfo);
+            pool.submit(() -> {
+                rls.add(rl);
+                Iterator<RlPair> iterator = rls.iterator();
+                while (iterator.hasNext()) {
+                    RlPair x = iterator.next();
+                    if (x.listenerRef.get() == null) {
+                        x.info.closeConnections();
+                        iterator.remove();
+                    }
+                }
+            });
+        }
+
+        public static void shutdown() {
+            CompletableFuture.runAsync(() -> {
+                for (RlPair rl : rls)
+                    rl.info.closeConnections();
+                rls.clear();
+                pool.shutdown();
+            }, pool);
+        }
+    }
+
+    private static class RlInfo {
+        private Path        rootDir     = null;
+        private Session     session     = null;
+        private Channel     channel     = null;
+        private ChannelSftp channelSftp = null;
+
+
+        private void closeConnections() {
+            if (session != null) session.disconnect();
+            if (channel != null) channel.disconnect();
+            session = null;
+            channel = null;
+        }
+
+        private boolean validateConnections() {
+            return session != null && session.isConnected() &&
+                   channel != null && channel.isConnected();
+        }
     }
 }

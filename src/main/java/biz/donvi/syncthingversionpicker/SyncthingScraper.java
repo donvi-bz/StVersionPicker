@@ -11,9 +11,13 @@ import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLConnection;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 
@@ -67,6 +71,7 @@ public class SyncthingScraper {
                 httpsCon.setHostnameVerifier((hostname, sslSession) -> true);
             }
             con.setRequestProperty("X-API-Key", apikey);
+            con.setConnectTimeout(5000);
             con.connect();
             int res = con.getResponseCode();
             return res == HTTP_OK
@@ -83,6 +88,7 @@ public class SyncthingScraper {
             httpsCon.setHostnameVerifier((hostname, sslSession) -> true);
         }
         con.setRequestProperty("X-API-Key", apikey);
+        con.setConnectTimeout(5000);
         con.connect();
         return mapper.readValue(con.getInputStream(), clazz);
     }

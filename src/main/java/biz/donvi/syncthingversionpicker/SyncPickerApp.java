@@ -10,11 +10,12 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class SyncPickerApp extends Application {
-
+    private static final ArrayList<Runnable> shutdownOperations = new ArrayList<>();
     private static SyncPickerApp application;
 
     SyncthingScraper localSyncScraper;
@@ -34,11 +35,20 @@ public class SyncPickerApp extends Application {
         pickerLoader = new FXMLLoader(SyncPickerApp.class.getResource("picker-view.fxml"));
         Scene scene = new Scene(homeLoader.load(), 600, 400);
         stage.setTitle("Hello!");
+        stage.setOnCloseRequest(event -> {
+            for (Runnable action : shutdownOperations) {
+                action.run();
+            }
+        });
         stage.setScene(scene);
         stage.show();
     }
 
     public static SyncPickerApp getApplication() { return application; }
+
+    public static void registerShutdownOperation(Runnable runnable) {
+        shutdownOperations.add(runnable);
+    }
 
     public void setPickerStage() throws IOException {
         Scene scene = new Scene(pickerLoader.load(), 1000, 500);
