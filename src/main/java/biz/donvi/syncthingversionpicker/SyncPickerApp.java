@@ -18,9 +18,9 @@ public class SyncPickerApp extends Application {
     private static final ArrayList<Runnable> shutdownOperations = new ArrayList<>();
     private static SyncPickerApp application;
 
-    SyncthingScraper localSyncScraper;
-    SyncthingScraper remoteSyncScraper;
-    RemoteLister remoteLister;
+    public SyncthingScraper localSyncScraper; // FIXME: shouldn't really be public...
+    public SyncthingScraper remoteSyncScraper; // FIXME: shouldn't really be public...
+    public RemoteLister remoteLister; // FIXME: shouldn't really be public...
 
     private FXMLLoader pickerLoader;
     private Stage stage;

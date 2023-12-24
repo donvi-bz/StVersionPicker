@@ -1,10 +1,8 @@
 package biz.donvi.syncthingversionpicker.files;
 
-import biz.donvi.syncthingversionpicker.PickerController;
+import biz.donvi.syncthingversionpicker.controllers.PickerController;
 import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.SftpException;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;

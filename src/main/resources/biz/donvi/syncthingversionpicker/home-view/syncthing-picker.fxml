@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import atlantafx.base.layout.InputGroup?>
+<?import javafx.scene.text.TextFlow?>
+<?import javafx.scene.text.Text?>
+<?import javafx.geometry.Insets?>
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="biz.donvi.syncthingversionpicker.controllers.StPickerComponentController"
+      prefHeight="400.0" prefWidth="600.0">
+        <InputGroup maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="556.0">
+            <children>
+                <Label minWidth="-Infinity" text="URL" />
+                <TextField fx:id="syncthingUrl" onKeyTyped="#clearSyncthingAnswer" prefHeight="25.0" prefWidth="10000.0" promptText="Syncthing URL"/>
+                <Label minWidth="-Infinity" text="API Key" />
+                <TextField fx:id="syncthingApiKey" maxWidth="1.7976931348623157E308" onKeyTyped="#clearSyncthingAnswer" prefWidth="10120.0" promptText="API Key" />
+            </children>
+        </InputGroup>
+        <TextFlow onMouseClicked="#testSyncthing" prefWidth="200.0">
+            <children>
+                <Text fx:id="syncthingTestBtn" strokeType="OUTSIDE" strokeWidth="0.0" text="Test Connection" underline="true">
+                    <cursor>
+                        <Cursor fx:constant="HAND" />
+                    </cursor>
+                </Text>
+                <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" " />
+                <Text fx:id="syncthingTestAnswer" strokeType="OUTSIDE" strokeWidth="0.0" text="Connected" />
+            </children>
+            <VBox.margin>
+                <Insets />
+            </VBox.margin>
+        </TextFlow>
+</VBox>

@@ -1,6 +1,8 @@
-package biz.donvi.syncthingversionpicker;
+package biz.donvi.syncthingversionpicker.controllers;
 
 import atlantafx.base.theme.Styles;
+import biz.donvi.syncthingversionpicker.StFolder;
+import biz.donvi.syncthingversionpicker.SyncPickerApp;
 import biz.donvi.syncthingversionpicker.files.StDirectory;
 import biz.donvi.syncthingversionpicker.files.StFile;
 import biz.donvi.syncthingversionpicker.files.StFile.Location;

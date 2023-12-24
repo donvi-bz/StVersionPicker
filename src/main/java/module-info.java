@@ -15,4 +15,6 @@ module biz.donvi.syncthingversionpicker {
 
     opens biz.donvi.syncthingversionpicker to javafx.fxml, com.fasterxml.jackson.databind;
     exports biz.donvi.syncthingversionpicker;
+    exports biz.donvi.syncthingversionpicker.controllers;
+    opens biz.donvi.syncthingversionpicker.controllers to com.fasterxml.jackson.databind, javafx.fxml;
 }

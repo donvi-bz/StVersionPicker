@@ -7,55 +7,13 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" spacing="4.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="biz.donvi.syncthingversionpicker.HomeController">
+<VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" spacing="4.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="biz.donvi.syncthingversionpicker.controllers.HomeController">
     <children>
         <Label alignment="CENTER" prefHeight="80.0" prefWidth="556.0" styleClass="title-1" text="Syncthing Version Picker v0.1" />
         <Label styleClass="title-3" text="Local Syncthing" />
-        <InputGroup maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="556.0">
-            <children>
-                <Label minWidth="-Infinity" text="URL" />
-                <TextField fx:id="localSyncthingUrl" onKeyTyped="#clearLocalSyncthingAnswer" prefHeight="25.0" prefWidth="10000.0" promptText="Syncthing URL" text="http://127.0.0.1:8384" />
-                <Label minWidth="-Infinity" text="API Key" />
-                <TextField fx:id="localSyncthingApiKey" maxWidth="1.7976931348623157E308" onKeyTyped="#clearLocalSyncthingAnswer" prefWidth="10120.0" promptText="API Key" text="shyoNqcSgEkjbJrD6WLPfa9egpj7PwuR" />
-            </children>
-        </InputGroup>
-        <TextFlow onMouseClicked="#testLocalSyncthing" prefWidth="200.0">
-            <children>
-                <Text fx:id="localSyncthingTestBtn" strokeType="OUTSIDE" strokeWidth="0.0" text="Test Connection" underline="true">
-                    <cursor>
-                        <Cursor fx:constant="HAND" />
-                    </cursor>
-                </Text>
-                <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" " />
-                <Text fx:id="localSyncthingTestAnswer" strokeType="OUTSIDE" strokeWidth="0.0" text="Connected" />
-            </children>
-            <VBox.margin>
-                <Insets />
-            </VBox.margin>
-        </TextFlow>
+        <fx:include fx:id="localStPicker" source="home-view/syncthing-picker.fxml"/>
         <Label styleClass="title-3" text="Remote Syncthing" />
-        <InputGroup maxWidth="1.7976931348623157E308" minHeight="-Infinity">
-            <children>
-                <Label minWidth="-Infinity" text="URL" />
-                <TextField fx:id="remoteSyncthingUrl" onKeyTyped="#clearRemoteSyncthingAnswer" maxWidth="1.7976931348623157E308" prefHeight="25.0" prefWidth="10000.0" promptText="Syncthing URL" text="https://192.168.68.5:8384" />
-                <Label minWidth="-Infinity" text="API Key" />
-                <TextField fx:id="remoteSyncthingApiKey" onKeyTyped="#clearRemoteSyncthingAnswer" maxWidth="1.7976931348623157E308" prefWidth="10120.0" promptText="API Key" text="Dsi7UuwNwPzD9XfUnHPUCPjTkKcYUZza" />
-            </children>
-        </InputGroup>
-        <TextFlow onMouseClicked="#testRemoteSyncthing" prefWidth="200.0">
-            <children>
-                <Text fx:id="remoteSyncthingTestBtn" strokeType="OUTSIDE" strokeWidth="0.0" text="Test Connection" underline="true">
-                    <cursor>
-                        <Cursor fx:constant="HAND" />
-                    </cursor>
-                </Text>
-                <Text strokeType="OUTSIDE" strokeWidth="0.0" text=" " />
-                <Text fx:id="remoteSyncthingTestAnswer" strokeType="OUTSIDE" strokeWidth="0.0" text="Connected" />
-            </children>
-            <VBox.margin>
-                <Insets />
-            </VBox.margin>
-        </TextFlow>
+        <fx:include fx:id="remoteStPicker" source="home-view/syncthing-picker.fxml"/>
         <InputGroup maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" prefWidth="556.0">
             <children>
                 <Label minWidth="-Infinity" text="SSH" />
