@@ -46,22 +46,17 @@ public class HomeController {
         CompletableFuture.allOf(futures).thenApplyAsync(results -> {
             try {
                 if (Arrays.stream(futures).allMatch(CompletableFuture::resultNow)) {
-                    // This will throw if its no good.0
-                    localStPickerController.syncthingScraper.updateFolders();
-                    remoteStPickerController.syncthingScraper.updateFolders();
                     // Put in global state
-                    SyncPickerApp app = SyncPickerApp.getApplication();
-                    app.localSyncScraper = localStPickerController.syncthingScraper;
-                    app.remoteSyncScraper = remoteStPickerController.syncthingScraper;
-                    app.remoteLister = remoteLister;
-                    return app;
+                    return SyncPickerApp.getApplication().setStConnections(
+                        localStPickerController.syncthingScraper,
+                        remoteStPickerController.syncthingScraper,
+                        remoteLister
+                    );
                 } else if (futures[0].resultNow()) {
-                    // TODO: make this better
-                    localStPickerController.syncthingScraper.updateFolders();
-                    SyncPickerApp app = SyncPickerApp.getApplication();
-                    app.localSyncScraper = localStPickerController.syncthingScraper;
-                    app.remoteSyncScraper = SyncthingScraper.EmptyScraper;
-                    return app;
+                    return SyncPickerApp.getApplication().setStConnections(
+                        localStPickerController.syncthingScraper,
+                        null, null
+                    );
                 } else {
                     return null;
                 }

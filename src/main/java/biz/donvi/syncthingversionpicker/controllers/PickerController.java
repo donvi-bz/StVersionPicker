@@ -129,8 +129,8 @@ public class PickerController implements Initializable {
             }
         });
         comboBox.setItems(DoubleStFolder.combine(
-            app.localSyncScraper.getFolders(),
-            app.remoteSyncScraper.getFolders()
+            app.getLocalSyncScraper().getFolders(),
+            app.getRemoteSyncScraper().getFolders()
         ));
 
         fileGroupList.setCellFactory(c -> new ListCell<>() {
@@ -246,7 +246,7 @@ public class PickerController implements Initializable {
     void onComboBoxChange() {
         StDirectory rootFile = StFile.newDirFromStFolder(
             comboBox.getValue(),
-            SyncPickerApp.getApplication().remoteLister
+            SyncPickerApp.getApplication().getRemoteLister()
         );
         var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 

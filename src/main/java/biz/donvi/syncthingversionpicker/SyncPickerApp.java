@@ -2,6 +2,7 @@ package biz.donvi.syncthingversionpicker;
 
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
+import biz.donvi.syncthingversionpicker.files.LocationLister;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -18,12 +19,16 @@ public class SyncPickerApp extends Application {
     private static final ArrayList<Runnable> shutdownOperations = new ArrayList<>();
     private static SyncPickerApp application;
 
-    public SyncthingScraper localSyncScraper; // FIXME: shouldn't really be public...
-    public SyncthingScraper remoteSyncScraper; // FIXME: shouldn't really be public...
-    public RemoteLister remoteLister; // FIXME: shouldn't really be public...
+    private SyncthingScraper localSyncScraper;
+    private SyncthingScraper remoteSyncScraper;
+    private RemoteLister remoteLister;
 
     private FXMLLoader pickerLoader;
     private Stage stage;
+
+    public SyncthingScraper getLocalSyncScraper() { return localSyncScraper; }
+    public SyncthingScraper getRemoteSyncScraper() { return remoteSyncScraper; }
+    public RemoteLister getRemoteLister() { return remoteLister; }
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -54,6 +59,16 @@ public class SyncPickerApp extends Application {
         Scene scene = new Scene(pickerLoader.load(), 1000, 500);
         scene.getStylesheets().add("/biz/donvi/syncthingversionpicker/style.css");
         stage.setScene(scene);
+    }
+
+    public SyncPickerApp setStConnections(SyncthingScraper local, SyncthingScraper remote, RemoteLister lister)
+    throws IOException {
+        this.localSyncScraper = local != null ? local : SyncthingScraper.EmptyScraper;
+        this.localSyncScraper.updateFolders();
+        this.remoteSyncScraper = remote != null ? remote : SyncthingScraper.EmptyScraper;
+        this.remoteSyncScraper.updateFolders();
+        this.remoteLister = lister;
+        return this;
     }
 
     public static void main(String[] args) {
