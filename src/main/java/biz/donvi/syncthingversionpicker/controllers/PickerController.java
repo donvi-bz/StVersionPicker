@@ -30,55 +30,6 @@ import java.util.ResourceBundle;
 
 public class PickerController implements Initializable {
 
-    public record DoubleStFolder(StFolder local, StFolder remote) implements Comparable<DoubleStFolder> {
-
-        @Override
-        public String toString() {
-            return first().toString();
-        }
-
-        StFolder first() {
-            if (local != null)
-                return local;
-            else return remote;
-        }
-
-        String label() {
-            if (local != null)
-                return local.label();
-            if (remote != null)
-                return remote.label();
-            return "!";
-        }
-
-        String id() {
-            if (local != null)
-                return local.id();
-            if (remote != null)
-                return remote.id();
-            return "!";
-        }
-
-        static ObservableList<DoubleStFolder> combine(List<StFolder> locals, List<StFolder> remotes) {
-            HashMap<String, DoubleStFolder> map = new HashMap<>();
-            for (var local : locals)
-                map.put(local.id(), new DoubleStFolder(local, null));
-            DoubleStFolder d;
-            for (var remote : remotes)
-                if ((d = map.get(remote.id())) != null)
-                    map.put(remote.id(), new DoubleStFolder(d.local, remote));
-                else
-                    map.put(remote.id(), new DoubleStFolder(null, remote));
-            return FXCollections.observableArrayList(map.values().stream().sorted().toList());
-        }
-
-        @Override
-        public int compareTo(DoubleStFolder o) {
-            return this.label().compareTo(o.label());
-        }
-    }
-
-
     private ObservableList<StFolder> textFlows;
 
     @FXML
@@ -93,144 +44,16 @@ public class PickerController implements Initializable {
     @Override
     public void initialize(URL location, ResourceBundle resources) {
         SyncPickerApp app = SyncPickerApp.getApplication();
-        comboBox.setCellFactory(c -> new ListCell<>() {
-            @Override
-            protected void updateItem(DoubleStFolder item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (item == null || empty) {
-                    setGraphic(null);
-                } else {
-                    TextFlow outerTextFlow = new TextFlow();
-
-                    Text title = new Text(item.label());
-                    title.setStyle("-fx-font-weight: bold");
-
-                    Text id = new Text(String.format(" (%s)", item.id()));
-                    id.setStyle("-fx-font-weight: regular");
-                    id.setStyle("-fx-font-family: Monospaced");
-
-                    outerTextFlow.getChildren().addAll(title, id);
-
-                    if (item.local != null) {
-                        TextFlow localBadge = new TextFlow(new Text("local"));
-                        localBadge.getStyleClass().addAll("badge", "b-blue");
-                        outerTextFlow.getChildren().addAll(localBadge, new Text(" "));
-                    }
-                    if (item.remote != null) {
-                        TextFlow remoteBadge = new TextFlow(new Text("remote"));
-                        remoteBadge.getStyleClass().addAll("badge", "b-purple");
-                        outerTextFlow.getChildren().add(remoteBadge);
-                    }
-
-
-                    setGraphic(outerTextFlow);
-                }
-            }
-        });
+        comboBox.setCellFactory(c -> new ComboBoxListCell());
         comboBox.setItems(DoubleStFolder.combine(
             app.getLocalSyncScraper().getFolders(),
             app.getRemoteSyncScraper().getFolders()
         ));
 
-        fileGroupList.setCellFactory(c -> new ListCell<>() {
-            @Override
-            protected void updateItem(StFileGroup.File item, boolean empty) {
-                super.updateItem(item, empty);
-
-                if (item == null || empty) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    var graphic = new FontIcon(Evaicons.FILE);
-                    switch (item.location) {
-                        case LocalReal -> {}
-                        case RemoteReal -> graphic.getStyleClass().add(Styles.SUCCESS);
-                        case LocalVersions -> graphic.getStyleClass().add(Styles.WARNING);
-                        case RemoteVersions -> graphic.getStyleClass().add(Styles.ACCENT);
-                    }
-                    setGraphic(graphic);
-                    if (item.location == Location.LocalReal)
-                        setText("Current Version");
-                    else
-                        setText(item.getTimeStamp() + "\t|   " + item.getTimeAgo(LocalDateTime.now()));
-
-//                    TextFlow textFlow = new TextFlow();
-//                    Text textLeft = new Text(item.getTimeStamp());
-//                    textLeft.setTextAlignment(TextAlignment.LEFT);
-//                    Text textMiddle = new Text(" | ");
-//                    textMiddle.setTextAlignment(TextAlignment.CENTER);
-//                    Text textRight = new Text(item.getTimeStamp());
-//                    textRight.setTextAlignment(TextAlignment.RIGHT);
-//                    textFlow.getChildren().addAll(textLeft, textMiddle, textRight);
-//                    setGraphic(textFlow);
-                }
-            }
-        });
+        fileGroupList.setCellFactory(c -> new FileGroupCell());
 
         // Setting Cell Factory
-        treeView.setCellFactory(c -> new TreeCell<StFile>() {
-
-            private final FontIcon folderGraphic = new FontIcon(Evaicons.FOLDER);
-            private final FontIcon fileGraphic = new FontIcon(Evaicons.FILE);
-
-            private final HBox outerBox = new HBox();
-            private final Text fileName = new Text();
-            private final TextFlow localFlow = new TextFlow();
-            private final Text localText = new Text();
-            private final TextFlow remoteFlow = new TextFlow();
-            private final Text remoteText = new Text();
-
-            {
-                localFlow.getChildren().add(localText);
-                localFlow.getStyleClass().addAll("badge", "b-blue");
-                remoteFlow.getChildren().add(remoteText);
-                remoteFlow.getStyleClass().addAll("badge", "b-purple");
-                outerBox.setSpacing(4);
-                outerBox.getChildren().addAll(folderGraphic, fileName, localFlow, remoteFlow);
-            }
-
-            @Override
-            protected void updateItem(StFile file, boolean empty) {
-                super.updateItem(file, empty);
-
-                if (file == null || empty) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
-                    setText("");
-                    setGraphic(outerBox);
-                    fileName.setText(file.fileName);
-                    if (file instanceof StFileGroup group) {
-                        if (!outerBox.getChildren().isEmpty())
-                            outerBox.getChildren().set(0, fileGraphic);
-                        setOrHideFlow(Location.LocalVersions, group.countFiles(Location.LocalVersions));
-                        setOrHideFlow(Location.RemoteVersions, group.countFiles(Location.RemoteVersions));
-                    } else {
-                        if (!outerBox.getChildren().isEmpty())
-                            outerBox.getChildren().set(0, folderGraphic);
-                        setOrHideFlow(Location.LocalVersions, 0);
-                        setOrHideFlow(Location.RemoteVersions, 0);
-                    }
-                }
-            }
-
-            private void setOrHideFlow(Location loc, long count) {
-                var correctText = switch (loc) {
-                    case LocalVersions -> localText;
-                    case RemoteVersions -> remoteText;
-                    case LocalReal, RemoteReal -> null;
-                };
-                assert correctText != null; // That should be checked at compile time by the dev.
-                var correctTextParent = correctText.getParent();
-                outerBox.getChildren().remove(correctTextParent);
-                if (count > 0) {
-                    outerBox.getChildren().add(correctTextParent);
-                    correctText.setText(String.valueOf(count));
-                }
-            }
-
-        });
+        treeView.setCellFactory(c -> new FileTreeCell());
         treeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null) {
                 fileGroupList.setItems(FXCollections.observableArrayList());
@@ -302,5 +125,204 @@ public class PickerController implements Initializable {
         }
     };
 
+    /****************************************************************
+     MARK: - DoubleStFolder
+     ****************************************************************/
 
+    public record DoubleStFolder(StFolder local, StFolder remote) implements Comparable<DoubleStFolder> {
+
+        @Override
+        public String toString() {
+            return first().toString();
+        }
+
+        StFolder first() {
+            if (local != null)
+                return local;
+            else return remote;
+        }
+
+        String label() {
+            if (local != null)
+                return local.label();
+            if (remote != null)
+                return remote.label();
+            return "!";
+        }
+
+        String id() {
+            if (local != null)
+                return local.id();
+            if (remote != null)
+                return remote.id();
+            return "!";
+        }
+
+        static ObservableList<DoubleStFolder> combine(List<StFolder> locals, List<StFolder> remotes) {
+            HashMap<String, DoubleStFolder> map = new HashMap<>();
+            for (var local : locals)
+                map.put(local.id(), new DoubleStFolder(local, null));
+            DoubleStFolder d;
+            for (var remote : remotes)
+                if ((d = map.get(remote.id())) != null)
+                    map.put(remote.id(), new DoubleStFolder(d.local, remote));
+                else
+                    map.put(remote.id(), new DoubleStFolder(null, remote));
+            return FXCollections.observableArrayList(map.values().stream().sorted().toList());
+        }
+
+        @Override
+        public int compareTo(DoubleStFolder o) {
+            return this.label().compareTo(o.label());
+        }
+    }
+
+
+    /****************************************************************
+     MARK: - ComboBoxListCell
+     ****************************************************************/
+
+    private static class ComboBoxListCell extends ListCell<DoubleStFolder> {
+
+        @Override
+        protected void updateItem(DoubleStFolder item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (item == null || empty) {
+                setGraphic(null);
+            } else {
+                TextFlow outerTextFlow = new TextFlow();
+
+                Text title = new Text(item.label());
+                title.setStyle("-fx-font-weight: bold");
+
+                Text id = new Text(String.format(" (%s)", item.id()));
+                id.setStyle("-fx-font-weight: regular");
+                id.setStyle("-fx-font-family: Monospaced");
+
+                outerTextFlow.getChildren().addAll(title, id);
+
+                if (item.local != null) {
+                    TextFlow localBadge = new TextFlow(new Text("local"));
+                    localBadge.getStyleClass().addAll("badge", "b-blue");
+                    outerTextFlow.getChildren().addAll(localBadge, new Text(" "));
+                }
+                if (item.remote != null) {
+                    TextFlow remoteBadge = new TextFlow(new Text("remote"));
+                    remoteBadge.getStyleClass().addAll("badge", "b-purple");
+                    outerTextFlow.getChildren().add(remoteBadge);
+                }
+
+
+                setGraphic(outerTextFlow);
+            }
+        }
+    }
+
+    /****************************************************************
+     MARK: - FileGroupCell
+     ****************************************************************/
+
+    private static class FileGroupCell extends ListCell<StFileGroup.File> {
+
+        @Override
+        protected void updateItem(StFileGroup.File item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (item == null || empty) {
+                setText(null);
+                setGraphic(null);
+            } else {
+                var graphic = new FontIcon(Evaicons.FILE);
+                switch (item.location) {
+                    case LocalReal -> {}
+                    case RemoteReal -> graphic.getStyleClass().add(Styles.SUCCESS);
+                    case LocalVersions -> graphic.getStyleClass().add(Styles.WARNING);
+                    case RemoteVersions -> graphic.getStyleClass().add(Styles.ACCENT);
+                }
+                setGraphic(graphic);
+                if (item.location == Location.LocalReal)
+                    setText("Current Version");
+                else
+                    setText(item.getTimeStamp() + "\t|   " + item.getTimeAgo(LocalDateTime.now()));
+
+//                    TextFlow textFlow = new TextFlow();
+//                    Text textLeft = new Text(item.getTimeStamp());
+//                    textLeft.setTextAlignment(TextAlignment.LEFT);
+//                    Text textMiddle = new Text(" | ");
+//                    textMiddle.setTextAlignment(TextAlignment.CENTER);
+//                    Text textRight = new Text(item.getTimeStamp());
+//                    textRight.setTextAlignment(TextAlignment.RIGHT);
+//                    textFlow.getChildren().addAll(textLeft, textMiddle, textRight);
+//                    setGraphic(textFlow);
+            }
+        }
+    }
+
+    /****************************************************************
+     MARK: - FileTreeCell
+     ****************************************************************/
+
+    private static class FileTreeCell extends TreeCell<StFile> {
+
+        private final FontIcon folderGraphic = new FontIcon(Evaicons.FOLDER);
+        private final FontIcon fileGraphic   = new FontIcon(Evaicons.FILE);
+
+        private final HBox     outerBox   = new HBox();
+        private final Text     fileName   = new Text();
+        private final TextFlow localFlow  = new TextFlow();
+        private final Text     localText  = new Text();
+        private final TextFlow remoteFlow = new TextFlow();
+        private final Text     remoteText = new Text();
+
+        {
+            localFlow.getChildren().add(localText);
+            localFlow.getStyleClass().addAll("badge", "b-blue");
+            remoteFlow.getChildren().add(remoteText);
+            remoteFlow.getStyleClass().addAll("badge", "b-purple");
+            outerBox.setSpacing(4);
+            outerBox.getChildren().addAll(folderGraphic, fileName, localFlow, remoteFlow);
+        }
+
+        @Override
+        protected void updateItem(StFile file, boolean empty) {
+            super.updateItem(file, empty);
+
+            if (file == null || empty) {
+                setText(null);
+                setGraphic(null);
+            } else {
+                setText("");
+                setGraphic(outerBox);
+                fileName.setText(file.fileName);
+                if (file instanceof StFileGroup group) {
+                    if (!outerBox.getChildren().isEmpty())
+                        outerBox.getChildren().set(0, fileGraphic);
+                    setOrHideFlow(Location.LocalVersions, group.countFiles(Location.LocalVersions));
+                    setOrHideFlow(Location.RemoteVersions, group.countFiles(Location.RemoteVersions));
+                } else {
+                    if (!outerBox.getChildren().isEmpty())
+                        outerBox.getChildren().set(0, folderGraphic);
+                    setOrHideFlow(Location.LocalVersions, 0);
+                    setOrHideFlow(Location.RemoteVersions, 0);
+                }
+            }
+        }
+
+        private void setOrHideFlow(Location loc, long count) {
+            var correctText = switch (loc) {
+                case LocalVersions -> localText;
+                case RemoteVersions -> remoteText;
+                case LocalReal, RemoteReal -> null;
+            };
+            assert correctText != null; // That should be checked at compile time by the dev.
+            var correctTextParent = correctText.getParent();
+            outerBox.getChildren().remove(correctTextParent);
+            if (count > 0) {
+                outerBox.getChildren().add(correctTextParent);
+                correctText.setText(String.valueOf(count));
+            }
+        }
+
+    }
 }
