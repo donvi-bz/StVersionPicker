@@ -7,9 +7,7 @@ import biz.donvi.syncthingversionpicker.files.StDirectory;
 import biz.donvi.syncthingversionpicker.files.StFile;
 import biz.donvi.syncthingversionpicker.files.StFile.Location;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
-import biz.donvi.syncthingversionpicker.files.StFileGroup.File;
 import javafx.application.Platform;
-import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
@@ -24,7 +22,6 @@ import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -57,18 +54,7 @@ public class PickerController implements Initializable {
     public Text fileNameText;
 
     @FXML
-    private TableView<File> fileGroupTable;
-
-    @FXML
-    public TableColumn<File, String> columnType;
-    @FXML
-    public TableColumn<File, String> columnLocation;
-    @FXML
-    public TableColumn<File, String> columnDateCreated;
-    @FXML
-    public TableColumn<File, String> columnTimeSinceCreation;
-    @FXML
-    public TableColumn<File, String> columnName;
+    public PickerTableComponentController fileGroupTableController;
 
 
     @Override
@@ -80,46 +66,6 @@ public class PickerController implements Initializable {
             app.getRemoteSyncScraper().getFolders()
         ));
 
-        fileGroupTable.setRowFactory(x -> new TableRow<>() {
-            @Override
-            protected void updateItem(File file, boolean empty) {
-                super.updateItem(file, empty);
-                if (file == null || empty) {
-                    setStyle("");
-                    return;
-                }
-                String style = "";
-                if (file.location.isReal)
-                    style += "-fx-font-weight: bold;";
-
-                if (file.location.isLocal)
-                    style += "-fx-background-color: -color-blue;";
-                else
-                    style += "-fx-background-color: -color-purple;";
-
-                setStyle(style);
-            }
-        });
-
-        columnType.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
-            x.getValue().location.isReal ? "Real" : "Backup")
-        );
-
-        columnLocation.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
-            x.getValue().location.isLocal ? "Local" : "Remote"
-        ));
-
-        columnDateCreated.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
-            x.getValue().getTimeStamp()
-        ));
-
-        columnTimeSinceCreation.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
-            x.getValue().getTimeAgo(LocalDateTime.now())
-        ));
-
-        columnName.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
-            x.getValue().nameRaw
-        ));
 
         fileNameText.setText("** No File Selected **");
         fileExistsOnLocalFlow.setVisible(false);
@@ -131,14 +77,14 @@ public class PickerController implements Initializable {
         treeView.setCellFactory(c -> new FileTreeCell());
         treeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue == null) {
-                fileGroupTable.setItems(FXCollections.observableArrayList());
+                fileGroupTableController.setSelected(null);
                 fileNameText.setText("** No File Selected **");
                 fileExistsOnLocalFlow.setVisible(false);
                 fileExistsOnRemoteFlow.setVisible(false);
                 fileHasBackupsOnLocalFLow.setVisible(false);
                 fileHasBackupsOnRemoteFLow.setVisible(false);
             } else if (newValue.getValue() instanceof StFileGroup fileGroup) {
-                fileGroupTable.setItems(FXCollections.observableArrayList(fileGroup.getFiles()));
+                fileGroupTableController.setSelected(fileGroup);
                 fileNameText.setText(fileGroup.fileName);
                 long countLocalReal = fileGroup.countFiles(Location.LocalReal);
                 long countRemoteReal = fileGroup.countFiles(Location.RemoteReal);
@@ -153,7 +99,6 @@ public class PickerController implements Initializable {
             }
         });
 
-        fileGroupTable.getStyleClass().add(Styles.DENSE);
     }
 
     @FXML
@@ -309,46 +254,6 @@ public class PickerController implements Initializable {
             }
         }
     }
-
-    /****************************************************************
-     MARK: - FileGroupCell
-     ****************************************************************/
-
-//    private static class FileGroupCell extends  {
-//
-//        protected void updateItem(File item, boolean empty) {
-//            super.updateItem(item, empty);
-//
-//            if (item == null || empty) {
-//                setText(null);
-//                setGraphic(null);
-//            } else {
-//                var graphic = new FontIcon(Evaicons.FILE);
-//                switch (item.location) {
-//                    case LocalReal -> {
-//                    }
-//                    case RemoteReal -> graphic.getStyleClass().add(Styles.SUCCESS);
-//                    case LocalVersions -> graphic.getStyleClass().add(Styles.WARNING);
-//                    case RemoteVersions -> graphic.getStyleClass().add(Styles.ACCENT);
-//                }
-//                setGraphic(graphic);
-//                if (item.location == Location.LocalReal)
-//                    setText("Current Version");
-//                else
-//                    setText(item.getTimeStamp() + "\t|   " + item.getTimeAgo(LocalDateTime.now()));
-//
-////                    TextFlow textFlow = new TextFlow();
-////                    Text textLeft = new Text(item.getTimeStamp());
-////                    textLeft.setTextAlignment(TextAlignment.LEFT);
-////                    Text textMiddle = new Text(" | ");
-////                    textMiddle.setTextAlignment(TextAlignment.CENTER);
-////                    Text textRight = new Text(item.getTimeStamp());
-////                    textRight.setTextAlignment(TextAlignment.RIGHT);
-////                    textFlow.getChildren().addAll(textLeft, textMiddle, textRight);
-////                    setGraphic(textFlow);
-//            }
-//        }
-//    }
 
     /****************************************************************
      MARK: - FileTreeCell

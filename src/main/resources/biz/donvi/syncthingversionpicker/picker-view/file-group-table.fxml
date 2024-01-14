@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<TableView xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="biz.donvi.syncthingversionpicker.controllers.PickerTableComponentController"
+           fx:id="fileGroupTable"
+           prefHeight="1000.0" prefWidth="200.0">
+    <columns>
+        <TableColumn fx:id="columnType" maxWidth="1000.0" prefWidth="10.0" text="Type"/>
+        <TableColumn fx:id="columnLocation" maxWidth="1000.0" prefWidth="10.0" text="Location"/>
+        <TableColumn fx:id="columnTimeSinceCreation" maxWidth="1000.0" prefWidth="20.0" text="Time Since Created"/>
+        <TableColumn fx:id="columnDateCreated" maxWidth="1000.0" prefWidth="20.0" text="Date Created"/>
+        <TableColumn fx:id="columnName" maxWidth="1000.0" prefWidth="30.0" text="Raw Name"/>
+    </columns>
+    <columnResizePolicy>
+        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY"/>
+    </columnResizePolicy>
+</TableView>
+
