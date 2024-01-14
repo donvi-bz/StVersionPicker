@@ -6,7 +6,10 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.List;
 
 public final class StFileGroup extends StFile {
 
@@ -21,6 +24,7 @@ public final class StFileGroup extends StFile {
     /**
      * Returns a list of files that match this file group. See {@link StFile.Location} for more information on what
      * type of file can be found.
+     *
      * @return A list of files in this file group.
      */
     public List<File> getFiles() {
@@ -31,6 +35,7 @@ public final class StFileGroup extends StFile {
      * Are there any files in this group that are NOT {@link StFile.Location#LocalReal}? True if yes, false otherwise.
      * <br/> For some added explanation: if this is true then there are extra versions of the main file, if it is false
      * then the only version of the file is the singular one in the real folder.
+     *
      * @return {@code true} if there are version files, {@code false} if there is only the original real local file.
      */
     public boolean hasNonRealLocalFiles() {
@@ -53,6 +58,7 @@ public final class StFileGroup extends StFile {
 
     /**
      * Adds a new file to this file group, and updates the primary location of the group.
+     *
      * @param file
      */
     void add(File file) {
@@ -64,19 +70,19 @@ public final class StFileGroup extends StFile {
     }
 
     public class File implements Comparable<File> {
-        private static final DateTimeFormatter dfInput = DateTimeFormatter.ofPattern("~yyyyMMdd-HHmmss");
+        private static final DateTimeFormatter dfInput   = DateTimeFormatter.ofPattern("~yyyyMMdd-HHmmss");
         private static final DateTimeFormatter dfDisplay = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
 
-        public final String nameRaw;
-        public final Location location;
-        private final String   timestamp;
+        public final  String        nameRaw;
+        public final  Location      location;
+        private final String        timestamp;
         private final LocalDateTime localDateTime;
 
         File(String nameRaw, Location location, String timestamp) {
             this.nameRaw = nameRaw;
             this.location = location;
             this.timestamp = timestamp;
-            this.localDateTime = "".equals(timestamp) ? null :  LocalDateTime.parse(timestamp, dfInput);
+            this.localDateTime = "".equals(timestamp) ? null : LocalDateTime.parse(timestamp, dfInput);
         }
 
         public String getTimeStamp() {
@@ -100,6 +106,26 @@ public final class StFileGroup extends StFile {
                 return String.format("%s hours, %s minutes", dur.toHours(), dur.toMinutes() % 60);
             else
                 return String.format("%s days, %s hours", dur.toDays(), dur.toHours() % 24);
+        }
+
+
+        /**
+         * Gets the full path (starting at the system root) of the file's parent directory.
+         * @return The full path of this file's directory.
+         */
+        public Path getFullFolderPath() {
+            if (!location.isLocal) throw new UnsupportedOperationException("Not yet implemented.");
+            Path path = Path.of(localStFolder.path());
+            if (!location.isReal) path = path.resolve(STV);
+            return path.resolve(relativePath).getParent();
+        }
+
+        /**
+         * Gets the full path (starting at the system root) of this file.
+         * @return The full path of this file.
+         */
+        public Path getFullRawPath() {
+            return getFullFolderPath().resolve(nameRaw);
         }
 
         @Override
