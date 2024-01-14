@@ -90,7 +90,7 @@ public final class StDirectory extends StFile {
                         StFileGroup fileGroup = new StFileGroup(localStFolder, path);
                         // Then, for each file in the list, add a new file to the file group
                         for (FileWithInfo file : fileList)
-                            fileGroup.add(fileGroup.new File(file.loc, file.timestamp));
+                            fileGroup.add(fileGroup.new File(file.nameRaw, file.loc, file.timestamp));
                         // And lastly, add it to the final result
                         children.add(fileGroup);
                     }

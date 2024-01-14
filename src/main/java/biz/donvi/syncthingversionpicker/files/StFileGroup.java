@@ -67,11 +67,13 @@ public final class StFileGroup extends StFile {
         private static final DateTimeFormatter dfInput = DateTimeFormatter.ofPattern("~yyyyMMdd-HHmmss");
         private static final DateTimeFormatter dfDisplay = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
 
+        public final String nameRaw;
         public final Location location;
         private final String   timestamp;
         private final LocalDateTime localDateTime;
 
-        File(Location location, String timestamp) {
+        File(String nameRaw, Location location, String timestamp) {
+            this.nameRaw = nameRaw;
             this.location = location;
             this.timestamp = timestamp;
             this.localDateTime = "".equals(timestamp) ? null :  LocalDateTime.parse(timestamp, dfInput);

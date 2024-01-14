@@ -15,3 +15,16 @@ root {
 .badge.b-purple {
     -fx-background-color:  #00FF0044;
 }
+
+.h3 {
+    -fx-font-size: 14;
+    -fx-font-weight: bold;
+}
+
+.code {
+    -fx-background-color: #00000030;
+    -fx-background-radius: 4;
+    -fx-padding: 1 3 1 3;
+    -fx-font-weight: bold;
+    -fx-font-family: Monospaced, monospace;
+}

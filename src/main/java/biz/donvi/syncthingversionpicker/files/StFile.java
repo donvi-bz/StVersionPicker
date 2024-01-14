@@ -1,7 +1,7 @@
 package biz.donvi.syncthingversionpicker.files;
 
-import biz.donvi.syncthingversionpicker.controllers.PickerController;
 import biz.donvi.syncthingversionpicker.StFolder;
+import biz.donvi.syncthingversionpicker.controllers.PickerController;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 
 import java.nio.file.Path;
@@ -85,19 +85,27 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
         /**
          * Describes a file that comes from the <b>local</b> Syncthing folder.
          */
-        LocalReal,
+        LocalReal(true, true),
         /**
          * Describes a file that comes from a <b>remote</b> syncthing folder.
          */
-        RemoteReal,
+        RemoteReal(false, true),
         /**
          * Describes a file that comes from the <b>local .stversions</b> folder.
          */
-        LocalVersions,
+        LocalVersions(true, false),
         /**
          * Describes a file that comes from a <b>remote .stversions</b>  folder.
          */
-        RemoteVersions
+        RemoteVersions(false, false);
+
+        public final boolean isLocal;
+        public final boolean isReal;
+
+        Location(boolean isLocal, boolean isReal) {
+            this.isLocal = isLocal;
+            this.isReal = isReal;
+        }
     }
 
 }
