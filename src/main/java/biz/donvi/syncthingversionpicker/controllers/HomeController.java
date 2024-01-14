@@ -2,6 +2,7 @@ package biz.donvi.syncthingversionpicker.controllers;
 
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
 import biz.donvi.syncthingversionpicker.SyncthingScraper;
+import biz.donvi.syncthingversionpicker.files.StFile;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -85,7 +86,8 @@ public class HomeController {
             sshUser.getText(),
             shhAddress.getText(),
             Integer.parseInt(sshPort.getText()),
-            sshPassword.getText(), Path.of("")
+            sshPassword.getText(), Path.of(""),
+            StFile.Location.RemoteReal
         );
         sshTestBtn.setText("Testing...");
         sshTestBtn.setDisable(true);

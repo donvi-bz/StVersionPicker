@@ -1,19 +1,21 @@
-root {
-
+* {
+    -color-default: #1186AD44;
+    -color-blue: #09C1FF44;
+    -color-purple: #00FF0044;
 }
 
 .badge {
-    -fx-background-color:  #1186AD44;
+    -fx-background-color: -color-default;
     -fx-background-radius: 4;
     -fx-padding: 0 3 0 3;
 }
 
 .badge.b-blue {
-    -fx-background-color:  #09C1FF44;
+    -fx-background-color: -color-blue;
 }
 
 .badge.b-purple {
-    -fx-background-color:  #00FF0044;
+    -fx-background-color: -color-purple;
 }
 
 .h3 {

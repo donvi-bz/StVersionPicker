@@ -80,6 +80,27 @@ public class PickerController implements Initializable {
             app.getRemoteSyncScraper().getFolders()
         ));
 
+        fileGroupTable.setRowFactory(x -> new TableRow<>() {
+            @Override
+            protected void updateItem(File file, boolean empty) {
+                super.updateItem(file, empty);
+                if (file == null || empty) {
+                    setStyle("");
+                    return;
+                }
+                String style = "";
+                if (file.location.isReal)
+                    style += "-fx-font-weight: bold;";
+
+                if (file.location.isLocal)
+                    style += "-fx-background-color: -color-blue;";
+                else
+                    style += "-fx-background-color: -color-purple;";
+
+                setStyle(style);
+            }
+        });
+
         columnType.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
             x.getValue().location.isReal ? "Real" : "Backup")
         );

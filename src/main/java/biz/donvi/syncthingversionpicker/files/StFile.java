@@ -52,13 +52,22 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
         var localPath = Optional.ofNullable(folder.local()).map(StFolder::path).map(Path::of);
         var remotePath = Optional.ofNullable(folder.remote()).map(StFolder::path).map(Path::of);
         LocationLister lister = localPath.map(LocationLister::new).orElseGet(LocationLister::new);
+        RemoteLister remoteVersionsLister = remoteLister.duplicate(Location.RemoteVersions);
         if (remotePath.isPresent()) {
             remoteLister.setupSessionAndChannelAsync(remotePath.get()).thenAcceptAsync(e -> {
                 if (e.isPresent()) {
                     // TODO: do something?
                 }
             });
-            lister.setLister(Location.RemoteVersions, remoteLister);
+            remoteVersionsLister.setupSessionAndChannelAsync(remotePath.get().resolve(STV)).thenAcceptAsync(e -> {
+                if (e.isPresent()) {
+                    // TODO: do something?
+                }
+            });
+
+
+            lister.setLister(Location.RemoteReal, remoteLister);
+            lister.setLister(Location.RemoteVersions, remoteVersionsLister);
         }
         return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalReal);
     }

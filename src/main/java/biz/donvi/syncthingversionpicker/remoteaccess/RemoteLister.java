@@ -25,15 +25,18 @@ public class RemoteLister implements LocationLister.Lister {
     private final Path   pathToKey;
     private final RlInfo rlInfo = new RlInfo();
 
+    private final StFile.Location location;
+
     public RemoteLister(
         String user, String host, int port,
-        String pass, Path pathToKey
+        String pass, Path pathToKey, StFile.Location location
     ) {
         this.host = host;
         this.port = port;
         this.user = user;
         this.pass = pass;
         this.pathToKey = pathToKey;
+        this.location = location;
         RlPair.addNew(this);
     }
 
@@ -159,7 +162,7 @@ public class RemoteLister implements LocationLister.Lister {
                 .stream()
                 .filter(RemoteLister::isValidFolder)
                 .map(file -> new LocationLister.FileWithLocation(
-                    StFile.Location.RemoteVersions,
+                    location,
                     file.getFilename(),
                     file.getAttrs().isDir()))
                 .collect(Collectors.toList());
@@ -230,5 +233,9 @@ public class RemoteLister implements LocationLister.Lister {
             return session != null && session.isConnected() &&
                    channel != null && channel.isConnected();
         }
+    }
+
+    public RemoteLister duplicate(StFile.Location location) {
+        return new RemoteLister(user, host, port, pass, pathToKey, location);
     }
 }
