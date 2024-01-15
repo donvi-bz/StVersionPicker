@@ -32,17 +32,23 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      */
     public final String fileName;
 
+    /** The extension of the file WITH the dot */
+    public final String fileExtension;
+
 
     protected StFile(StFolder localStFolder, Path relativePath) {
         this.localStFolder = localStFolder;
         this.relativePath = relativePath;
         this.fileName = relativePath.getFileName().toString();
+        this.fileExtension = fileName.contains(".")
+            ? fileName.substring(fileName.lastIndexOf(".")) : "";
     }
 
     static final String STV = ".stversions";
     static final String STF = ".stfolder";
 
-    /** <b>FIXME: OUTDATED</b><br/>
+    /**
+     * <b>FIXME: OUTDATED</b><br/>
      * Creates a new root directory from a {@link StFolder}.
      * This method is the only way for a non-{@link StFile} class to make an instance of a {@link StFile} class.
      *
@@ -52,19 +58,19 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
         var localPath = Optional.ofNullable(folder.local()).map(StFolder::path).map(Path::of);
         var remotePath = Optional.ofNullable(folder.remote()).map(StFolder::path).map(Path::of);
         LocationLister lister = localPath.map(LocationLister::new).orElseGet(LocationLister::new);
-        RemoteLister remoteVersionsLister = remoteLister.duplicate(Location.RemoteVersions);
-        if (remotePath.isPresent()) {
+        if (remotePath.isPresent() && remoteLister != null) {
             remoteLister.setupSessionAndChannelAsync(remotePath.get()).thenAcceptAsync(e -> {
                 if (e.isPresent()) {
                     // TODO: do something?
                 }
             });
+
+            RemoteLister remoteVersionsLister = remoteLister.duplicate(Location.RemoteVersions);
             remoteVersionsLister.setupSessionAndChannelAsync(remotePath.get().resolve(STV)).thenAcceptAsync(e -> {
                 if (e.isPresent()) {
                     // TODO: do something?
                 }
             });
-
 
             lister.setLister(Location.RemoteReal, remoteLister);
             lister.setLister(Location.RemoteVersions, remoteVersionsLister);

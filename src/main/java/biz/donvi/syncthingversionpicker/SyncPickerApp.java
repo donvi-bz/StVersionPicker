@@ -61,6 +61,10 @@ public class SyncPickerApp extends Application {
         stage.setScene(scene);
     }
 
+    public Stage getStage() {
+        return stage;
+    }
+
     public SyncPickerApp setStConnections(SyncthingScraper local, SyncthingScraper remote, RemoteLister lister)
     throws IOException {
         this.localSyncScraper = local != null ? local : SyncthingScraper.EmptyScraper;

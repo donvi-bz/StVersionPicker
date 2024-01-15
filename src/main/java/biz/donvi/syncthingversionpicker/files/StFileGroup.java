@@ -2,6 +2,9 @@ package biz.donvi.syncthingversionpicker.files;
 
 import biz.donvi.syncthingversionpicker.StFolder;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -69,7 +72,7 @@ public final class StFileGroup extends StFile {
         Collections.sort(files);
     }
 
-    public class File implements Comparable<File> {
+    public abstract class File implements Comparable<File> {
         private static final DateTimeFormatter dfInput   = DateTimeFormatter.ofPattern("~yyyyMMdd-HHmmss");
         private static final DateTimeFormatter dfDisplay = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
 
@@ -83,6 +86,10 @@ public final class StFileGroup extends StFile {
             this.location = location;
             this.timestamp = timestamp;
             this.localDateTime = "".equals(timestamp) ? null : LocalDateTime.parse(timestamp, dfInput);
+        }
+
+        public StFileGroup getParent() {
+            return StFileGroup.this;
         }
 
         public String getTimeStamp() {
@@ -131,6 +138,31 @@ public final class StFileGroup extends StFile {
         @Override
         public int compareTo(File o) {
             return this.timestamp.compareTo(o.timestamp);
+        }
+
+
+        public abstract InputStream getInputStream() throws FileNotFoundException;
+    }
+
+    public class LocalFile extends File {
+        LocalFile(String nameRaw, Location location, String timestamp) {
+            super(nameRaw, location, timestamp);
+        }
+
+        @Override
+        public InputStream getInputStream() throws FileNotFoundException {
+            return new FileInputStream(getFullRawPath().toFile());
+        }
+    }
+
+    public class RemoteFile extends File {
+        RemoteFile(String nameRaw, Location location, String timestamp) {
+            super(nameRaw, location, timestamp);
+        }
+
+        @Override
+        public InputStream getInputStream() {
+            return null; // TODO: Where does this come from?
         }
     }
 

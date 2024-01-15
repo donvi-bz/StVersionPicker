@@ -9,9 +9,15 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.stage.FileChooser;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ResourceBundle;
 
@@ -127,6 +133,8 @@ public class PickerTableComponentController implements Initializable {
             items.add(saveACopy);
             items.add(restoreVersion);
 
+            SyncPickerApp app = SyncPickerApp.getApplication();
+
             showInExplorer.setOnAction(event -> {
                 if (System.getProperty("os.name").toLowerCase().contains("win")) {
                     try {
@@ -135,13 +143,35 @@ public class PickerTableComponentController implements Initializable {
                         throw new RuntimeException(ex);
                     }
                 } else {
-                    SyncPickerApp.getApplication().getHostServices().showDocument(file.getFullFolderPath().toString());
+                    app.getHostServices().showDocument(file.getFullFolderPath().toString());
                 }
             });
             openInDefaultApp.setOnAction(event -> {
-                SyncPickerApp.getApplication().getHostServices().showDocument(file.getFullRawPath().toString());
+                app.getHostServices().showDocument(file.getFullRawPath().toString());
+            });
+
+            saveACopy.setOnAction(event -> {
+                FileChooser chooser = new FileChooser();
+                chooser.setTitle("Save Copy As...");
+                chooser.setInitialFileName(file.getParent().fileName);
+                String ext = file.getParent().fileExtension;
+                chooser.getExtensionFilters().addAll(
+                    new FileChooser.ExtensionFilter("Save as Original (%s)".formatted(ext), "*" + ext),
+                    new FileChooser.ExtensionFilter("All Files", "*.*")
+                );
+                java.io.File file = chooser.showSaveDialog(app.getStage());
+                if (file != null) {
+                    try (InputStream inputStream = this.file.getInputStream()){
+                        Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        throw new RuntimeException(e);
+                    }
+                }
             });
         }
+
+        private
 
         void updateMenuForFile(File file) {
             this.file = file;

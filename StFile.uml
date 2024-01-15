@@ -3,75 +3,272 @@
   <ID>JAVA</ID>
   <OriginalElement>biz.donvi.syncthingversionpicker.files.StDirectory</OriginalElement>
   <nodes>
-    <node x="280.0" y="332.80000000000007">biz.donvi.syncthingversionpicker.files.StDirectory.FileWithInfo</node>
-    <node x="-188.3" y="665.0">biz.donvi.syncthingversionpicker.files.StFileGroup.RemoteFile</node>
-    <node x="209.39999999999998" y="187.0">biz.donvi.syncthingversionpicker.files.StDirectory</node>
-    <node x="71.5" y="665.0">biz.donvi.syncthingversionpicker.files.StFileGroup.LocalFile</node>
-    <node x="-97.40000000000003" y="404.0">biz.donvi.syncthingversionpicker.files.StFileGroup.File</node>
-    <node x="-79.40000000000003" y="187.0">biz.donvi.syncthingversionpicker.files.StFileGroup</node>
-    <node x="-7.0" y="-7.0">biz.donvi.syncthingversionpicker.files.StFile</node>
-    <node x="424.5" y="16.0">biz.donvi.syncthingversionpicker.files.StFile.Location</node>
+    <node x="-1466.5" y="2636.5">biz.donvi.syncthingversionpicker.files.StDirectory.FileWithInfo</node>
+    <node x="-1038.0" y="1791.5">biz.donvi.syncthingversionpicker.files.LocationLister</node>
+    <node x="-1667.0" y="956.0">biz.donvi.syncthingversionpicker.files.StFileGroup.File</node>
+    <node x="-1310.0" y="1371.0">biz.donvi.syncthingversionpicker.files.LocationLister.FileWithLocation</node>
+    <node x="-1560.0" y="2240.0">biz.donvi.syncthingversionpicker.files.StFile</node>
+    <node x="-1115.5" y="2476.0">biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister.RlInfo</node>
+    <node x="-1089.0" y="2954.0">biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister.RlPair</node>
+    <node x="-1056.5" y="1276.0">biz.donvi.syncthingversionpicker.files.LocationLister.Lister</node>
+    <node x="-1369.0" y="1682.5">biz.donvi.syncthingversionpicker.files.StFileGroup.RemoteFile</node>
+    <node x="-1531.0" y="2033.0">biz.donvi.syncthingversionpicker.files.StDirectory</node>
+    <node x="-1190.0" y="2671.5">biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister</node>
+    <node x="-1561.5" y="1821.0">biz.donvi.syncthingversionpicker.files.StFileGroup.LocalFile</node>
+    <node x="-1678.0" y="1358.0">biz.donvi.syncthingversionpicker.files.StFileGroup</node>
+    <node x="-1498.5" y="2463.0">biz.donvi.syncthingversionpicker.files.StFile.Location</node>
   </nodes>
   <notes />
   <edges>
-    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup" target="biz.donvi.syncthingversionpicker.files.StFile" relationship="GENERALIZATION">
-      <point x="3.552713678800501E-14" y="-83.0" />
-      <point x="29.6" y="151.0" />
-      <point x="184.0" y="151.0" />
-      <point x="0.0" y="61.0" />
-    </edge>
-    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.LocalFile" target="biz.donvi.syncthingversionpicker.files.StFileGroup.File" relationship="GENERALIZATION">
-      <point x="0.0" y="38.5" />
-      <point x="184.0" y="759.5" />
-      <point x="-205.8" y="759.5" />
-      <point x="-205.8" y="640.0" />
-      <point x="-89.9" y="640.0" />
-      <point x="-110.49999999999997" y="105.0" />
-    </edge>
     <edge source="biz.donvi.syncthingversionpicker.files.StDirectory" target="biz.donvi.syncthingversionpicker.files.StFile" relationship="GENERALIZATION">
-      <point x="0.0" y="-50.0" />
-      <point x="371.4" y="151.0" />
-      <point x="184.0" y="151.0" />
-      <point x="0.0" y="61.0" />
-    </edge>
-    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.LocalFile" target="biz.donvi.syncthingversionpicker.files.StFileGroup" relationship="INNER_CLASS">
-      <point x="0.0" y="-38.5" />
-      <point x="184.0" y="640.0" />
-      <point x="156.1" y="640.0" />
-      <point x="156.1" y="270.0" />
-      <point x="109.00000000000003" y="0.0" />
-    </edge>
-    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.RemoteFile" target="biz.donvi.syncthingversionpicker.files.StFileGroup.File" relationship="GENERALIZATION">
-      <point x="-83.19999999999999" y="-38.5" />
-      <point x="-151.5" y="640.0" />
-      <point x="-89.9" y="640.0" />
-      <point x="-110.49999999999997" y="105.0" />
+      <point x="-40.5" y="50.0" />
+      <point x="-1409.5" y="2163.0" />
+      <point x="-1469.0" y="2163.0" />
+      <point x="-1469.0" y="2203.0" />
+      <point x="-1464.5" y="2203.0" />
+      <point x="-95.5" y="-63.0" />
     </edge>
     <edge source="biz.donvi.syncthingversionpicker.files.StDirectory.FileWithInfo" target="biz.donvi.syncthingversionpicker.files.StDirectory" relationship="INNER_CLASS">
-      <point x="-26.100000000000023" y="-104.5" />
-      <point x="0.0" y="50.0" />
+      <point x="58.75" y="-106.5" />
+      <point x="-1290.25" y="2563.0" />
+      <point x="-1149.0" y="2563.0" />
+      <point x="-1149.0" y="2223.0" />
+      <point x="-1247.5" y="2223.0" />
+      <point x="121.5" y="50.0" />
     </edge>
-    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.File" target="biz.donvi.syncthingversionpicker.files.StFileGroup" relationship="INNER_CLASS">
-      <point x="3.552713678800501E-14" y="105.0" />
-      <point x="20.6" y="640.0" />
-      <point x="156.1" y="640.0" />
-      <point x="156.1" y="270.0" />
-      <point x="109.00000000000003" y="0.0" />
+    <edge source="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister" target="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister.RlInfo" relationship="CREATE">
+      <point x="60.25" y="-71.5" />
+      <point x="-888.75" y="2643.0" />
+      <point x="-989.0" y="2643.0" />
+      <point x="-989.0" y="2623.0" />
+      <point x="-1038.0" y="2623.0" />
+      <point x="31.0" y="27.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister" target="biz.donvi.syncthingversionpicker.files.LocationLister.FileWithLocation" relationship="CREATE">
+      <point x="60.25" y="-71.5" />
+      <point x="-888.75" y="2643.0" />
+      <point x="-989.0" y="2643.0" />
+      <point x="-989.0" y="2063.0" />
+      <point x="-1069.0" y="2063.0" />
+      <point x="-1069.0" y="1563.0" />
+      <point x="-1109.0" y="1563.0" />
+      <point x="-1109.0" y="1543.0" />
+      <point x="-1169.0" y="1543.0" />
+      <point x="0.0" y="72.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister" target="biz.donvi.syncthingversionpicker.files.StFile.Location" relationship="TO_ONE">
+      <point x="-180.75" y="-71.5" />
+      <point x="-1129.75" y="2643.0" />
+      <point x="-1129.0" y="2643.0" />
+      <point x="-1129.0" y="2583.0" />
+      <point x="-1409.0" y="2583.0" />
+      <point x="0.0" y="40.0" />
     </edge>
     <edge source="biz.donvi.syncthingversionpicker.files.StFile.Location" target="biz.donvi.syncthingversionpicker.files.StFile" relationship="INNER_CLASS">
-      <point x="-89.5" y="0.0" />
-      <point x="191.0" y="0.0" />
+      <point x="44.75" y="-40.0" />
+      <point x="-1364.25" y="2443.0" />
+      <point x="-1369.0" y="2443.0" />
+      <point x="0.0" y="63.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StDirectory" target="biz.donvi.syncthingversionpicker.files.StFile.Location" relationship="TO_ONE">
+      <point x="-121.5" y="50.0" />
+      <point x="-1490.5" y="2223.0" />
+      <point x="-1589.0" y="2223.0" />
+      <point x="-1589.0" y="2323.0" />
+      <point x="-1629.0" y="2323.0" />
+      <point x="-1629.0" y="2443.0" />
+      <point x="-1453.75" y="2443.0" />
+      <point x="-44.75" y="-40.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StDirectory.FileWithInfo" target="biz.donvi.syncthingversionpicker.files.StFile.Location" relationship="TO_ONE">
+      <point x="-58.75" y="-106.5" />
+      <point x="-1407.75" y="2603.0" />
+      <point x="-1409.0" y="2603.0" />
+      <point x="0.0" y="40.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.LocationLister" target="biz.donvi.syncthingversionpicker.files.LocationLister.FileWithLocation" relationship="CREATE">
+      <point x="-126.0" y="-71.5" />
+      <point x="-975.0" y="1563.0" />
+      <point x="-1109.0" y="1563.0" />
+      <point x="-1109.0" y="1543.0" />
+      <point x="-1169.0" y="1543.0" />
+      <point x="0.0" y="72.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.LocationLister" target="biz.donvi.syncthingversionpicker.files.LocationLister.Lister" relationship="TO_ONE">
+      <point x="0.0" y="-71.5" />
+      <point x="-849.0" y="1363.0" />
+      <point x="-994.0" y="1363.0" />
+      <point x="-125.0" y="27.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister.RlInfo" target="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister" relationship="INNER_CLASS">
+      <point x="0.0" y="27.0" />
+      <point x="-1069.0" y="2643.0" />
+      <point x="-1009.25" y="2643.0" />
+      <point x="-60.25" y="-71.5" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.LocalFile" target="biz.donvi.syncthingversionpicker.files.StFileGroup" relationship="INNER_CLASS">
+      <point x="-56.25" y="-42.0" />
+      <point x="-1505.25" y="1643.0" />
+      <point x="-1489.0" y="1643.0" />
+      <point x="-1489.0" y="1563.0" />
+      <point x="-1487.25" y="1563.0" />
+      <point x="81.75" y="85.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StDirectory" target="biz.donvi.syncthingversionpicker.files.LocationLister" relationship="TO_ONE">
+      <point x="81.0" y="-50.0" />
+      <point x="-1288.0" y="2003.0" />
+      <point x="-849.0" y="2003.0" />
+      <point x="0.0" y="71.5" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup" target="biz.donvi.syncthingversionpicker.files.StFile" relationship="GENERALIZATION">
+      <point x="-27.25" y="85.0" />
+      <point x="-1596.25" y="1783.0" />
+      <point x="-1629.0" y="1783.0" />
+      <point x="-1629.0" y="2163.0" />
+      <point x="-1469.0" y="2163.0" />
+      <point x="-1469.0" y="2203.0" />
+      <point x="-1464.5" y="2203.0" />
+      <point x="-95.5" y="-63.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StDirectory" target="biz.donvi.syncthingversionpicker.files.StFileGroup.LocalFile" relationship="CREATE">
+      <point x="-81.0" y="-50.0" />
+      <point x="-1450.0" y="2003.0" />
+      <point x="-1449.0" y="2003.0" />
+      <point x="0.0" y="42.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StDirectory" target="biz.donvi.syncthingversionpicker.files.StFileGroup.RemoteFile" relationship="CREATE">
+      <point x="-81.0" y="-50.0" />
+      <point x="-1450.0" y="2003.0" />
+      <point x="-1449.0" y="2003.0" />
+      <point x="-1449.0" y="1923.0" />
+      <point x="-1249.0" y="1923.0" />
+      <point x="0.0" y="40.5" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.LocalFile" target="biz.donvi.syncthingversionpicker.files.StFileGroup.File" relationship="GENERALIZATION">
+      <point x="56.25" y="-42.0" />
+      <point x="-1392.75" y="1623.0" />
+      <point x="-1389.0" y="1623.0" />
+      <point x="-1389.0" y="1203.0" />
+      <point x="-1460.5" y="1203.0" />
+      <point x="88.5" y="107.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister" target="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister.RlInfo" relationship="TO_ONE">
+      <point x="-180.75" y="-71.5" />
+      <point x="-1129.75" y="2643.0" />
+      <point x="-1129.0" y="2643.0" />
+      <point x="-1129.0" y="2623.0" />
+      <point x="-1100.0" y="2623.0" />
+      <point x="-31.0" y="27.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister.RlPair" target="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister" relationship="INNER_CLASS">
+      <point x="0.0" y="-49.0" />
+      <point x="0.0" y="71.5" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.File" target="biz.donvi.syncthingversionpicker.files.StFileGroup" relationship="INNER_CLASS">
+      <point x="-29.5" y="107.0" />
+      <point x="-1578.5" y="1323.0" />
+      <point x="-1623.5" y="1323.0" />
+      <point x="-54.5" y="-85.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.File" target="biz.donvi.syncthingversionpicker.files.StFile.Location" relationship="TO_ONE">
+      <point x="-88.5" y="107.0" />
+      <point x="-1637.5" y="1343.0" />
+      <point x="-1709.0" y="1343.0" />
+      <point x="-1709.0" y="2323.0" />
+      <point x="-1629.0" y="2323.0" />
+      <point x="-1629.0" y="2443.0" />
+      <point x="-1453.75" y="2443.0" />
+      <point x="-44.75" y="-40.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.LocationLister.Lister" target="biz.donvi.syncthingversionpicker.files.LocationLister" relationship="INNER_CLASS">
+      <point x="0.0" y="27.0" />
+      <point x="-869.0" y="1763.0" />
+      <point x="-723.0" y="1763.0" />
+      <point x="126.0" y="-71.5" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister" target="biz.donvi.syncthingversionpicker.files.LocationLister.Lister" relationship="REALIZATION">
+      <point x="180.75" y="-71.5" />
+      <point x="-768.25" y="2643.0" />
+      <point x="-629.0" y="2643.0" />
+      <point x="-629.0" y="1743.0" />
+      <point x="-744.0" y="1743.0" />
+      <point x="125.0" y="27.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFile" target="biz.donvi.syncthingversionpicker.files.StDirectory" relationship="CREATE">
+      <point x="95.5" y="-63.0" />
+      <point x="-1273.5" y="2203.0" />
+      <point x="-1328.5" y="2203.0" />
+      <point x="40.5" y="50.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup" target="biz.donvi.syncthingversionpicker.files.StFileGroup.File" relationship="TO_MANY">
+      <point x="54.5" y="-85.0" />
+      <point x="-1514.5" y="1323.0" />
+      <point x="-1519.5" y="1323.0" />
+      <point x="29.5" y="107.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StDirectory" target="biz.donvi.syncthingversionpicker.files.StFileGroup" relationship="CREATE">
+      <point x="-81.0" y="-50.0" />
+      <point x="-1450.0" y="2003.0" />
+      <point x="-1449.0" y="2003.0" />
+      <point x="-1449.0" y="1923.0" />
+      <point x="-1589.0" y="1923.0" />
+      <point x="-1589.0" y="1803.0" />
+      <point x="-1541.75" y="1803.0" />
+      <point x="27.25" y="85.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.LocationLister.FileWithLocation" target="biz.donvi.syncthingversionpicker.files.StFile.Location" relationship="TO_ONE">
+      <point x="-94.0" y="72.0" />
+      <point x="-1263.0" y="1603.0" />
+      <point x="-1109.0" y="1603.0" />
+      <point x="-1109.0" y="1943.0" />
+      <point x="-1549.0" y="1943.0" />
+      <point x="-1549.0" y="2183.0" />
+      <point x="-1629.0" y="2183.0" />
+      <point x="-1629.0" y="2443.0" />
+      <point x="-1453.75" y="2443.0" />
+      <point x="-44.75" y="-40.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.RemoteFile" target="biz.donvi.syncthingversionpicker.files.StFileGroup.File" relationship="GENERALIZATION">
+      <point x="60.0" y="-40.5" />
+      <point x="-1189.0" y="1623.0" />
+      <point x="-1329.0" y="1623.0" />
+      <point x="-1329.0" y="1423.0" />
+      <point x="-1389.0" y="1423.0" />
+      <point x="-1389.0" y="1203.0" />
+      <point x="-1460.5" y="1203.0" />
+      <point x="88.5" y="107.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.LocationLister.FileWithLocation" target="biz.donvi.syncthingversionpicker.files.LocationLister" relationship="INNER_CLASS">
+      <point x="94.0" y="72.0" />
+      <point x="-1075.0" y="1543.0" />
+      <point x="-869.0" y="1543.0" />
+      <point x="-869.0" y="1763.0" />
+      <point x="-723.0" y="1763.0" />
+      <point x="126.0" y="-71.5" />
     </edge>
     <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup.RemoteFile" target="biz.donvi.syncthingversionpicker.files.StFileGroup" relationship="INNER_CLASS">
-      <point x="1.4210854715202004E-14" y="-38.5" />
-      <point x="-68.3" y="640.0" />
-      <point x="156.1" y="640.0" />
-      <point x="156.1" y="270.0" />
-      <point x="109.00000000000003" y="0.0" />
+      <point x="-60.0" y="-40.5" />
+      <point x="-1309.0" y="1643.0" />
+      <point x="-1489.0" y="1643.0" />
+      <point x="-1489.0" y="1563.0" />
+      <point x="-1487.25" y="1563.0" />
+      <point x="81.75" y="85.0" />
+    </edge>
+    <edge source="biz.donvi.syncthingversionpicker.files.StFileGroup" target="biz.donvi.syncthingversionpicker.files.StFile.Location" relationship="TO_ONE">
+      <point x="-81.75" y="85.0" />
+      <point x="-1650.75" y="1843.0" />
+      <point x="-1669.0" y="1843.0" />
+      <point x="-1669.0" y="2323.0" />
+      <point x="-1629.0" y="2323.0" />
+      <point x="-1629.0" y="2443.0" />
+      <point x="-1453.75" y="2443.0" />
+      <point x="-44.75" y="-40.0" />
     </edge>
   </edges>
-  <settings layout="Hierarchic Compact" zoom="1.25" showDependencies="false" x="209.4999999999996" y="404.2000000000001" />
-  <SelectedNodes />
+  <settings layout="Hierarchic Compact" zoom="0.6058601134215501" showDependencies="true" x="-1122.687987519501" y="1987.5912636505461" />
+  <SelectedNodes>
+    <node>biz.donvi.syncthingversionpicker.files.StFile.Location</node>
+  </SelectedNodes>
   <Categories>
     <Category>Constructors</Category>
     <Category>Fields</Category>
