@@ -1,7 +1,7 @@
 package biz.donvi.syncthingversionpicker.remoteaccess;
 
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
-import biz.donvi.syncthingversionpicker.files.LocationLister;
+import biz.donvi.syncthingversionpicker.files.DirectoryLister;
 import biz.donvi.syncthingversionpicker.files.StFile;
 import com.jcraft.jsch.*;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class RemoteLister implements LocationLister.Lister {
+public class RemoteLister implements SingleDirLister {
     private static final ExecutorService pool = Executors.newFixedThreadPool(1);
 
     private final String host;
@@ -144,7 +144,7 @@ public class RemoteLister implements LocationLister.Lister {
     }
 
     @Override
-    public CompletableFuture<List<LocationLister.FileWithLocation>> listForDir(Path relativeDirectory) {
+    public CompletableFuture<List<DirectoryLister.FileWithLocation>> listForDir(Path relativeDirectory) {
         return CompletableFuture.supplyAsync(() -> {
             ensureConnection();
             Vector<LsEntry> files;
@@ -161,7 +161,7 @@ public class RemoteLister implements LocationLister.Lister {
             return files
                 .stream()
                 .filter(RemoteLister::isValidFolder)
-                .map(file -> new LocationLister.FileWithLocation(
+                .map(file -> new DirectoryLister.FileWithLocation(
                     location,
                     file.getFilename(),
                     file.getAttrs().isDir()))

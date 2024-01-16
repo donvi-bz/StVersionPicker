@@ -2,18 +2,14 @@ package biz.donvi.syncthingversionpicker;
 
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
-import biz.donvi.syncthingversionpicker.files.LocationLister;
 import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class SyncPickerApp extends Application {
     private static final ArrayList<Runnable> shutdownOperations = new ArrayList<>();

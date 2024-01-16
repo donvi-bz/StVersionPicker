@@ -105,7 +105,7 @@ public class PickerController implements Initializable {
     void onComboBoxChange() {
         StDirectory rootFile = StFile.newDirFromStFolder(
             comboBox.getValue(),
-            SyncPickerApp.getApplication().getRemoteLister()
+            (x, y) -> SyncPickerApp.getApplication().getRemoteLister()
         );
         var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 

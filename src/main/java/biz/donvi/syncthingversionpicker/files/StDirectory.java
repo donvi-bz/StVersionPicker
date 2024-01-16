@@ -1,14 +1,12 @@
 package biz.donvi.syncthingversionpicker.files;
 
 import biz.donvi.syncthingversionpicker.StFolder;
-import biz.donvi.syncthingversionpicker.SyncPickerApp;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -40,11 +38,11 @@ public final class StDirectory extends StFile {
     /**
      * The lister used to list files in a given directory.
      */
-    final LocationLister locationLister;
+    final FullStLister fullStLister;
 
-    StDirectory(StFolder localStFolder, LocationLister locationLister, Path relativePath, Location location) {
+    StDirectory(StFolder localStFolder, FullStLister fullStLister, Path relativePath, Location location) {
         super(localStFolder, relativePath);
-        this.locationLister = locationLister;
+        this.fullStLister = fullStLister;
         this.location = location;
     }
 
@@ -55,13 +53,13 @@ public final class StDirectory extends StFile {
 
     /** <b>FIXME: OUTDATED</b><br/>
      * Gets a list of {@link StFile}s that are within this directory using the provided
-     * {@link LocationLister locationLister}. The returned list will contain files from all places listed in the
+     * {@link FullStLister locationLister}. The returned list will contain files from all places listed in the
      * {@link biz.donvi.syncthingversionpicker.files.StFile.Location Location} enum (currently only 4 locations).
      * @return A list of {@code StFile}s that are in this directory.
      */
     public CompletableFuture<List<StFile>> listFilesAsync() {
         // Listing files for a directory, then collecting them into a map
-        return locationLister
+        return fullStLister
             .listAllFiles(relativePath)
             .thenApplyAsync(files -> {
                 Map<String, List<FileWithInfo>> fileGroups = files
@@ -84,7 +82,7 @@ public final class StDirectory extends StFile {
                             .toList().get(0); // Take the first option in the list.
                         // Resolve the path of the new directory.
                         // Lastly, all we got to do is put this info into the
-                        children.add(new StDirectory(localStFolder, locationLister, path, mainLoc));
+                        children.add(new StDirectory(localStFolder, fullStLister, path, mainLoc));
                     } else {
                         // To start, make a new file group.
                         StFileGroup fileGroup = new StFileGroup(localStFolder, path);
@@ -120,14 +118,14 @@ public final class StDirectory extends StFile {
         String nameFixed, String sortName, String timestamp
     ) {
         /**
-         * Converts a {@link biz.donvi.syncthingversionpicker.files.LocationLister.FileWithLocation FileWithLocation}
+         * Converts a {@link DirectoryLister.FileWithLocation FileWithLocation}
          * into a {@link FileWithInfo FileWithInfo}. This conversion adds additional information that is needed to
          * create {@link StFileGroup}s
          *
          * @param f The {@code FileWithLocation} to convert
          * @return A {@code FileWithInfo with additional information}.
          */
-        static FileWithInfo into(LocationLister.FileWithLocation f) {
+        static FileWithInfo into(DirectoryLister.FileWithLocation f) {
             Matcher m = syncPattern.matcher(f.name());
             String nameFixed = f.name();
             String timestamp = "";

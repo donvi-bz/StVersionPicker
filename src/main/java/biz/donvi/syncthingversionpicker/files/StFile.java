@@ -7,6 +7,7 @@ import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.function.BiFunction;
 
 /**
  * A {@code StFile} represents either a file with multiple version, or a directory.
@@ -32,7 +33,9 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      */
     public final String fileName;
 
-    /** The extension of the file WITH the dot */
+    /**
+     * The extension of the file WITH the dot
+     */
     public final String fileExtension;
 
 
@@ -42,40 +45,6 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
         this.fileName = relativePath.getFileName().toString();
         this.fileExtension = fileName.contains(".")
             ? fileName.substring(fileName.lastIndexOf(".")) : "";
-    }
-
-    static final String STV = ".stversions";
-    static final String STF = ".stfolder";
-
-    /**
-     * <b>FIXME: OUTDATED</b><br/>
-     * Creates a new root directory from a {@link StFolder}.
-     * This method is the only way for a non-{@link StFile} class to make an instance of a {@link StFile} class.
-     *
-     * @return A new {@link StDirectory} that represents the root directory of the Syncthing folder.
-     */
-    public static StDirectory newDirFromStFolder(PickerController.DoubleStFolder folder, RemoteLister remoteLister) {
-        var localPath = Optional.ofNullable(folder.local()).map(StFolder::path).map(Path::of);
-        var remotePath = Optional.ofNullable(folder.remote()).map(StFolder::path).map(Path::of);
-        LocationLister lister = localPath.map(LocationLister::new).orElseGet(LocationLister::new);
-        if (remotePath.isPresent() && remoteLister != null) {
-            remoteLister.setupSessionAndChannelAsync(remotePath.get()).thenAcceptAsync(e -> {
-                if (e.isPresent()) {
-                    // TODO: do something?
-                }
-            });
-
-            RemoteLister remoteVersionsLister = remoteLister.duplicate(Location.RemoteVersions);
-            remoteVersionsLister.setupSessionAndChannelAsync(remotePath.get().resolve(STV)).thenAcceptAsync(e -> {
-                if (e.isPresent()) {
-                    // TODO: do something?
-                }
-            });
-
-            lister.setLister(Location.RemoteReal, remoteLister);
-            lister.setLister(Location.RemoteVersions, remoteVersionsLister);
-        }
-        return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalReal);
     }
 
     /**
@@ -90,6 +59,56 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
     public int compareTo(StFile o) {
         return this.relativePath.compareTo(o.relativePath);
     }
+
+    /* **************************************************************
+     MARK: - Static Stuff
+     ************************************************************** */
+
+    static final String STV = ".stversions";
+    static final String STF = ".stfolder";
+
+    /**
+     * Helper method to exclude Syncthing files.
+     *
+     * @param name The name of the file to check.
+     * @return {@code true} if the file should be kept, {@code false} if the file is one of the Syncthing files.
+     */
+    public static boolean notStPlaceholder(String name) {
+        return !(name.equals(STV) || name.equals(STF));
+    }
+
+    /**
+     * <b>FIXME: OUTDATED</b><br/>
+     * Creates a new root directory from a {@link StFolder}.
+     * This method is the only way for a non-{@link StFile} class to make an instance of a {@link StFile} class.
+     *
+     * @return A new {@link StDirectory} that represents the root directory of the Syncthing folder.
+     */
+    public static StDirectory newDirFromStFolder(
+        PickerController.DoubleStFolder folder,
+        BiFunction<Path, Path, DirectoryLister> remoteListerProvider
+    ) {
+        var localRealPath = Optional.ofNullable(folder.local()).map(StFolder::path).map(Path::of);
+        var localVersPath = Optional.ofNullable(folder.local()).map(StFolder::versionsPath).map(Path::of);
+        var remoteRealPath = Optional.ofNullable(folder.remote()).map(StFolder::path).map(Path::of);
+        var remoteVersPath = Optional.ofNullable(folder.remote()).map(StFolder::versionsPath).map(Path::of);
+
+        if (localRealPath.isEmpty() || localVersPath.isEmpty())
+            throw new RuntimeException("Must have a valid local path at least!");
+
+        LocalDirectoryLister localLister = new LocalDirectoryLister(localRealPath.get(), localVersPath.get());
+        DirectoryLister remoteLister = (remoteRealPath.isPresent() && remoteVersPath.isPresent())
+            ? remoteListerProvider.apply(remoteRealPath.get(), remoteVersPath.get())
+            : DirectoryLister.emptyLister;
+
+        FullStLister lister = new FullStLister(localLister, remoteLister);
+
+        return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalReal);
+    }
+
+    /* **************************************************************
+     MARK: - Location Enum
+     ************************************************************** */
 
     /**
      * All the different possible locations that a {@link StFile} can come from.
