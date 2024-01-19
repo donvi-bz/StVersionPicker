@@ -1,5 +1,7 @@
 package biz.donvi.syncthingversionpicker.files;
 
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +22,17 @@ public class FullStLister {
         this.remoteDirectoryLister = remoteDirectoryLister;
     }
 
+    public Path rootDir(Location location) {
+        return directoryLister(location.where).rootDir(location.when);
+    }
+
+    private DirectoryLister directoryLister(Location.Where where) {
+        return switch (where) {
+            case Local -> localDirectoryLister;
+            case Remote -> remoteDirectoryLister;
+        };
+    }
+
     /**
      * Lists all files from all sources for a given path.
      *
@@ -29,10 +42,10 @@ public class FullStLister {
     CompletableFuture<List<DirectoryLister.FileWithLocation>> listAllFiles(Path path) {
         @SuppressWarnings("unchecked")
         CompletableFuture<List<DirectoryLister.FileWithLocation>>[] futures = List.of(
-            localDirectoryLister.listForRealDir(path),
-            localDirectoryLister.listForRemoteDir(path),
-            remoteDirectoryLister.listForRealDir(path),
-            remoteDirectoryLister.listForRemoteDir(path)
+            localDirectoryLister.listForDir(path, Location.When.Current),
+            localDirectoryLister.listForDir(path, Location.When.Version),
+            remoteDirectoryLister.listForDir(path, Location.When.Current),
+            remoteDirectoryLister.listForDir(path, Location.When.Version)
         ).toArray(CompletableFuture[]::new);
         return CompletableFuture.allOf(futures).thenApplyAsync(x -> {
             var files = new ArrayList<DirectoryLister.FileWithLocation>();
@@ -40,5 +53,9 @@ public class FullStLister {
                 files.addAll(f.resultNow());
             return files;
         });
+    }
+
+    public CompletableFuture<InputStream> readFile(Path absolutePath, Location location) {
+        return directoryLister(location.where).readFile(absolutePath, location.when);
     }
 }

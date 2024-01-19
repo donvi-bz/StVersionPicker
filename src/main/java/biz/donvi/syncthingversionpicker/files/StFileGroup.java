@@ -2,8 +2,6 @@ package biz.donvi.syncthingversionpicker.files;
 
 import biz.donvi.syncthingversionpicker.StFolder;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -13,19 +11,22 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public final class StFileGroup extends StFile {
 
+    private final StDirectory parentDir;
     private final List<File> files = new ArrayList<>();
 
     private Location location = null;
 
-    StFileGroup(StFolder localStFolder, Path relativePath) {
+    StFileGroup(StFolder localStFolder, StDirectory parentDir, Path relativePath) {
         super(localStFolder, relativePath);
+        this.parentDir = parentDir;
     }
 
     /**
-     * Returns a list of files that match this file group. See {@link StFile.Location} for more information on what
+     * Returns a list of files that match this file group. See {@link Location} for more information on what
      * type of file can be found.
      *
      * @return A list of files in this file group.
@@ -35,7 +36,7 @@ public final class StFileGroup extends StFile {
     }
 
     /**
-     * Are there any files in this group that are NOT {@link StFile.Location#LocalReal}? True if yes, false otherwise.
+     * Are there any files in this group that are NOT {@link Location#LocalCurrent}? True if yes, false otherwise.
      * <br/> For some added explanation: if this is true then there are extra versions of the main file, if it is false
      * then the only version of the file is the singular one in the real folder.
      *
@@ -46,7 +47,7 @@ public final class StFileGroup extends StFile {
             .stream()
             .map(f -> f.location)
             .distinct()
-            .anyMatch(f -> f != Location.LocalReal);
+            .anyMatch(f -> f != Location.LocalCurrent);
     }
 
     public long countFiles(Location... locations) {
@@ -72,7 +73,7 @@ public final class StFileGroup extends StFile {
         Collections.sort(files);
     }
 
-    public abstract class File implements Comparable<File> {
+    public class File implements Comparable<File> {
         private static final DateTimeFormatter dfInput   = DateTimeFormatter.ofPattern("~yyyyMMdd-HHmmss");
         private static final DateTimeFormatter dfDisplay = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
 
@@ -116,24 +117,17 @@ public final class StFileGroup extends StFile {
         }
 
 
-        /**
-         * Gets the full path (starting at the system root) of the file's parent directory.
-         * @return The full path of this file's directory.
-         */
-        public Path getFullFolderPath() {
-            if (!location.isLocal) throw new UnsupportedOperationException("Not yet implemented.");
-            Path path = Path.of(localStFolder.path());
-            if (!location.isReal) path = path.resolve(STV);
-            return path.resolve(relativePath).getParent();
+        public Path getRawRelativePath() {
+            Path parent = relativePath.getParent();
+            return parent != null
+                ? parent.resolve(nameRaw)
+                : Path.of(nameRaw);
         }
 
-        /**
-         * Gets the full path (starting at the system root) of this file.
-         * @return The full path of this file.
-         */
-        public Path getFullRawPath() {
-            return getFullFolderPath().resolve(nameRaw);
+        public Path getRawFullPath() {
+            return parentDir.fullStLister.rootDir(location).resolve(getRawRelativePath());
         }
+
 
         @Override
         public int compareTo(File o) {
@@ -141,28 +135,8 @@ public final class StFileGroup extends StFile {
         }
 
 
-        public abstract InputStream getInputStream() throws FileNotFoundException;
-    }
-
-    public class LocalFile extends File {
-        LocalFile(String nameRaw, Location location, String timestamp) {
-            super(nameRaw, location, timestamp);
-        }
-
-        @Override
-        public InputStream getInputStream() throws FileNotFoundException {
-            return new FileInputStream(getFullRawPath().toFile());
-        }
-    }
-
-    public class RemoteFile extends File {
-        RemoteFile(String nameRaw, Location location, String timestamp) {
-            super(nameRaw, location, timestamp);
-        }
-
-        @Override
-        public InputStream getInputStream() {
-            return null; // TODO: Where does this come from?
+        public CompletableFuture<InputStream> getInputStream() {
+            return parentDir.fullStLister.readFile(getRawRelativePath(), location);
         }
     }
 

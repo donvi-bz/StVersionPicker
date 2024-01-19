@@ -1,9 +1,7 @@
 package biz.donvi.syncthingversionpicker;
 
-import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jcraft.jsch.JSchException;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
@@ -11,13 +9,9 @@ import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import static java.net.HttpURLConnection.HTTP_OK;
 

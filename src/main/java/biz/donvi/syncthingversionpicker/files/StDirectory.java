@@ -54,7 +54,7 @@ public final class StDirectory extends StFile {
     /** <b>FIXME: OUTDATED</b><br/>
      * Gets a list of {@link StFile}s that are within this directory using the provided
      * {@link FullStLister locationLister}. The returned list will contain files from all places listed in the
-     * {@link biz.donvi.syncthingversionpicker.files.StFile.Location Location} enum (currently only 4 locations).
+     * {@link Location Location} enum (currently only 4 locations).
      * @return A list of {@code StFile}s that are in this directory.
      */
     public CompletableFuture<List<StFile>> listFilesAsync() {
@@ -65,7 +65,7 @@ public final class StDirectory extends StFile {
                 Map<String, List<FileWithInfo>> fileGroups = files
                     .stream()
                     .map(FileWithInfo::into)
-                    .collect(Collectors.groupingBy(f -> f.sortName));
+                    .collect(Collectors.groupingBy(FileWithInfo::sortName));
                 // Then turn this into a map of StFileGroups
                 List<StFile> children = new ArrayList<>();
                 for (List<FileWithInfo> fileList : fileGroups.values()) {
@@ -77,7 +77,7 @@ public final class StDirectory extends StFile {
                         // If we have a directory, we only need to show it in the tree once.
                         Location mainLoc = fileList
                             .stream() // Take all the dirs that match this path and stream them
-                            .map(f -> f.loc) // Map to the location type.
+                            .map(FileWithInfo::loc) // Map to the location type.
                             .distinct().sorted() // Sort so the first in the list is the one we want to represent.
                             .toList().get(0); // Take the first option in the list.
                         // Resolve the path of the new directory.
@@ -85,13 +85,10 @@ public final class StDirectory extends StFile {
                         children.add(new StDirectory(localStFolder, fullStLister, path, mainLoc));
                     } else {
                         // To start, make a new file group.
-                        StFileGroup fileGroup = new StFileGroup(localStFolder, path);
+                        StFileGroup fileGroup = new StFileGroup(localStFolder,this , path);
                         // Then, for each file in the list, add a new file to the file group
                         for (FileWithInfo file : fileList)
-                            fileGroup.add(file.loc().isLocal
-                                ? fileGroup.new LocalFile(file.nameRaw, file.loc, file.timestamp)
-                                : fileGroup.new RemoteFile(file.nameRaw, file.loc, file.timestamp)
-                            );
+                            fileGroup.add(fileGroup.new File(file.nameRaw, file.loc, file.timestamp));
                         // And lastly, add it to the final result
                         children.add(fileGroup);
                     }
@@ -102,7 +99,7 @@ public final class StDirectory extends StFile {
 
     /**
      * A record purely for moving file info around conveniently.
-     * @param loc The {@link biz.donvi.syncthingversionpicker.files.StFile.Location Location} that this file came from.
+     * @param loc The {@link Location Location} that this file came from.
      * @param nameRaw The name exactly as written in the file system.
      * @param isDir {@code true} if this is a directory, {@code false} if it is a file.
      * @param nameFixed The name of the file with the syncthing version timestamp removed. Expect there to

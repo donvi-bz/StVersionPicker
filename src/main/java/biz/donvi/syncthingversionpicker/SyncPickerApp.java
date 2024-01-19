@@ -2,7 +2,7 @@ package biz.donvi.syncthingversionpicker;
 
 import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
-import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
+import biz.donvi.syncthingversionpicker.remoteaccess.RemoteFileAccessor;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -16,15 +16,15 @@ public class SyncPickerApp extends Application {
     private static SyncPickerApp application;
 
     private SyncthingScraper localSyncScraper;
-    private SyncthingScraper remoteSyncScraper;
-    private RemoteLister remoteLister;
+    private SyncthingScraper   remoteSyncScraper;
+    private RemoteFileAccessor remoteFileAccessor;
 
     private FXMLLoader pickerLoader;
     private Stage stage;
 
     public SyncthingScraper getLocalSyncScraper() { return localSyncScraper; }
     public SyncthingScraper getRemoteSyncScraper() { return remoteSyncScraper; }
-    public RemoteLister getRemoteLister() { return remoteLister; }
+    public RemoteFileAccessor getRemoteLister() { return remoteFileAccessor; }
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -61,13 +61,13 @@ public class SyncPickerApp extends Application {
         return stage;
     }
 
-    public SyncPickerApp setStConnections(SyncthingScraper local, SyncthingScraper remote, RemoteLister lister)
+    public SyncPickerApp setStConnections(SyncthingScraper local, SyncthingScraper remote, RemoteFileAccessor lister)
     throws IOException {
         this.localSyncScraper = local != null ? local : SyncthingScraper.EmptyScraper;
         this.localSyncScraper.updateFolders();
         this.remoteSyncScraper = remote != null ? remote : SyncthingScraper.EmptyScraper;
         this.remoteSyncScraper.updateFolders();
-        this.remoteLister = lister;
+        this.remoteFileAccessor = lister;
         return this;
     }
 

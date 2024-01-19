@@ -2,7 +2,6 @@ package biz.donvi.syncthingversionpicker.files;
 
 import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.controllers.PickerController;
-import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -64,8 +63,8 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      MARK: - Static Stuff
      ************************************************************** */
 
-    static final String STV = ".stversions";
-    static final String STF = ".stfolder";
+    public static final String STV = ".stversions";
+    public static final String STF = ".stfolder";
 
     /**
      * Helper method to exclude Syncthing files.
@@ -103,43 +102,7 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
 
         FullStLister lister = new FullStLister(localLister, remoteLister);
 
-        return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalReal);
-    }
-
-    /* **************************************************************
-     MARK: - Location Enum
-     ************************************************************** */
-
-    /**
-     * All the different possible locations that a {@link StFile} can come from.
-     * <br/> Note: The order of the declarations <b>does</b> matter.
-     * <br/> Note: This may be expanded upon in the future to allow multiple remotes.
-     */
-    public enum Location {
-        /**
-         * Describes a file that comes from the <b>local</b> Syncthing folder.
-         */
-        LocalReal(true, true),
-        /**
-         * Describes a file that comes from a <b>remote</b> syncthing folder.
-         */
-        RemoteReal(false, true),
-        /**
-         * Describes a file that comes from the <b>local .stversions</b> folder.
-         */
-        LocalVersions(true, false),
-        /**
-         * Describes a file that comes from a <b>remote .stversions</b>  folder.
-         */
-        RemoteVersions(false, false);
-
-        public final boolean isLocal;
-        public final boolean isReal;
-
-        Location(boolean isLocal, boolean isReal) {
-            this.isLocal = isLocal;
-            this.isReal = isReal;
-        }
+        return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalCurrent);
     }
 
 }

@@ -1,9 +1,8 @@
 package biz.donvi.syncthingversionpicker.controllers;
 
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
-import biz.donvi.syncthingversionpicker.SyncthingScraper;
-import biz.donvi.syncthingversionpicker.files.StFile;
-import biz.donvi.syncthingversionpicker.remoteaccess.RemoteLister;
+import biz.donvi.syncthingversionpicker.files.Location;
+import biz.donvi.syncthingversionpicker.remoteaccess.RemoteFileAccessor;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.PasswordField;
@@ -27,7 +26,7 @@ public class HomeController {
     @FXML private Text          sshTestBtn;
     @FXML private Text          sshTestAnswer;
 
-    RemoteLister remoteLister;
+    RemoteFileAccessor remoteFileAccessor;
 
     @FXML
     public void initialize() {
@@ -51,7 +50,7 @@ public class HomeController {
                     return SyncPickerApp.getApplication().setStConnections(
                         localStPickerController.syncthingScraper,
                         remoteStPickerController.syncthingScraper,
-                        remoteLister
+                        remoteFileAccessor
                     );
                 } else if (futures[0].resultNow()) {
                     return SyncPickerApp.getApplication().setStConnections(
@@ -82,17 +81,17 @@ public class HomeController {
 
     @FXML
     protected CompletableFuture<Boolean> testSsh() {
-        remoteLister = new RemoteLister(
+        remoteFileAccessor = new RemoteFileAccessor(
             sshUser.getText(),
             shhAddress.getText(),
             Integer.parseInt(sshPort.getText()),
             sshPassword.getText(), Path.of(""),
-            StFile.Location.RemoteReal
+            Location.RemoteCurrent
         );
         sshTestBtn.setText("Testing...");
         sshTestBtn.setDisable(true);
         sshTestAnswer.setText("");
-        return remoteLister.setupSessionAsync().thenApplyAsync(e -> {
+        return remoteFileAccessor.setupSessionAsync().thenApplyAsync(e -> {
             String message = e.isEmpty() ? "Connected" : e.get().getLocalizedMessage();
             sshTestAnswer.setText(message);
             sshTestBtn.setText("Test SSH Connection");

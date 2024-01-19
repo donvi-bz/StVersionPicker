@@ -5,7 +5,7 @@ import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
 import biz.donvi.syncthingversionpicker.files.StDirectory;
 import biz.donvi.syncthingversionpicker.files.StFile;
-import biz.donvi.syncthingversionpicker.files.StFile.Location;
+import biz.donvi.syncthingversionpicker.files.Location;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -86,8 +86,8 @@ public class PickerController implements Initializable {
             } else if (newValue.getValue() instanceof StFileGroup fileGroup) {
                 fileGroupTableController.setSelected(fileGroup);
                 fileNameText.setText(fileGroup.fileName);
-                long countLocalReal = fileGroup.countFiles(Location.LocalReal);
-                long countRemoteReal = fileGroup.countFiles(Location.RemoteReal);
+                long countLocalReal = fileGroup.countFiles(Location.LocalCurrent);
+                long countRemoteReal = fileGroup.countFiles(Location.RemoteCurrent);
                 long countLocalVersions = fileGroup.countFiles(Location.LocalVersions);
                 long countRemoteVersions = fileGroup.countFiles(Location.RemoteVersions);
                 fileExistsOnLocalFlow.setVisible(countLocalReal > 0);
@@ -105,7 +105,7 @@ public class PickerController implements Initializable {
     void onComboBoxChange() {
         StDirectory rootFile = StFile.newDirFromStFolder(
             comboBox.getValue(),
-            (x, y) -> SyncPickerApp.getApplication().getRemoteLister()
+            (x, y) -> SyncPickerApp.getApplication().getRemoteLister().setupSessionAndChannelAsync(x, y)
         );
         var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 
@@ -309,7 +309,7 @@ public class PickerController implements Initializable {
             var correctText = switch (loc) {
                 case LocalVersions -> localText;
                 case RemoteVersions -> remoteText;
-                case LocalReal, RemoteReal -> null;
+                case LocalCurrent, RemoteCurrent -> null;
             };
             assert correctText != null; // That should be checked at compile time by the dev.
             var correctTextParent = correctText.getParent();

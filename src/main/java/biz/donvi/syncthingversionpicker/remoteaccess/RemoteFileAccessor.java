@@ -2,11 +2,14 @@ package biz.donvi.syncthingversionpicker.remoteaccess;
 
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
 import biz.donvi.syncthingversionpicker.files.DirectoryLister;
-import biz.donvi.syncthingversionpicker.files.StFile;
+import biz.donvi.syncthingversionpicker.files.Location;
 import com.jcraft.jsch.*;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
 import java.util.*;
@@ -15,7 +18,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
-public class RemoteLister implements SingleDirLister {
+import static biz.donvi.syncthingversionpicker.files.Location.RemoteCurrent;
+import static biz.donvi.syncthingversionpicker.files.Location.RemoteVersions;
+
+public class RemoteFileAccessor {
     private static final ExecutorService pool = Executors.newFixedThreadPool(1);
 
     private final String host;
@@ -25,11 +31,11 @@ public class RemoteLister implements SingleDirLister {
     private final Path   pathToKey;
     private final RlInfo rlInfo = new RlInfo();
 
-    private final StFile.Location location;
+    private final Location location;
 
-    public RemoteLister(
+    public RemoteFileAccessor(
         String user, String host, int port,
-        String pass, Path pathToKey, StFile.Location location
+        String pass, Path pathToKey, Location location
     ) {
         this.host = host;
         this.port = port;
@@ -39,7 +45,6 @@ public class RemoteLister implements SingleDirLister {
         this.location = location;
         RlPair.addNew(this);
     }
-
 
     public CompletableFuture<Optional<JSchException>> setupSessionAsync() {
         return CompletableFuture.supplyAsync(() -> {
@@ -52,15 +57,16 @@ public class RemoteLister implements SingleDirLister {
         }, pool);
     }
 
-    public CompletableFuture<Optional<Exception>> setupSessionAndChannelAsync(Path rootDir) {
-        return CompletableFuture.supplyAsync(() -> {
+    public RemoteLister setupSessionAndChannelAsync(Path realRoot, Path versionsRoot) {
+        pool.submit(() -> {
             try {
-                setupSessionAndChannel(rootDir);
-                return Optional.empty();
+                setupSessionAndChannel();
             } catch (JSchException | SftpException e) {
-                return Optional.of(e);
+                e.printStackTrace();
+                throw new RuntimeException(e);
             }
-        }, pool);
+        });
+        return new RemoteLister(realRoot, versionsRoot);
     }
 
     private void setupSession() throws JSchException {
@@ -77,13 +83,12 @@ public class RemoteLister implements SingleDirLister {
         rlInfo.session.connect(5000); // Hard-coded timeout?
     }
 
-    private void setupSessionAndChannel(Path rootDir) throws JSchException, SftpException {
-        this.rlInfo.rootDir = rootDir;
+    private void setupSessionAndChannel() throws JSchException, SftpException {
         setupSession();
         rlInfo.channel = rlInfo.session.openChannel("sftp");
         rlInfo.channel.connect();
         rlInfo.channelSftp = (ChannelSftp) rlInfo.channel;
-        rlInfo.channelSftp.cd(pathAsStr(rootDir));
+//        rlInfo.channelSftp.cd(pathAsStr(rootDir));
     }
 
 //    public StFolder getRemoteFolder(String endpoint, String url, String apiKey) throws JSchException {
@@ -134,40 +139,85 @@ public class RemoteLister implements SingleDirLister {
     private void ensureConnection() {
         if (!rlInfo.validateConnections()) {
             try {
-                setupSessionAndChannel(rlInfo.rootDir);
-            } catch (JSchException | SftpException e) {
+                setupSessionAndChannel();
+            } catch (JSchException e) {
                 System.err.println("Failed to ensure connection was up.");
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            } catch (SftpException e) {
                 e.printStackTrace();
                 throw new RuntimeException(e);
             }
         }
     }
 
-    @Override
-    public CompletableFuture<List<DirectoryLister.FileWithLocation>> listForDir(Path relativeDirectory) {
-        return CompletableFuture.supplyAsync(() -> {
-            ensureConnection();
-            Vector<LsEntry> files;
-            String dir = pathAsStr(rlInfo.rootDir.resolve(relativeDirectory));
-            try {
-                files = rlInfo.channelSftp.ls(dir);
-            } catch (SftpException e) {
-                if (!relativeDirectory.toString().isEmpty() && e.id == 2)
+    /* **************************************************************
+        MARK: - RemoteLister
+    ************************************************************** */
+
+    public class RemoteLister implements DirectoryLister {
+
+        private final Path realRoot;
+        private final Path versionsRoot;
+
+        private RemoteLister(Path realRoot, Path versionsRoot) {
+            this.realRoot = realRoot;
+            this.versionsRoot = versionsRoot;
+        }
+
+        @Override
+        public Path rootDir(Location.When when) {
+            return when.which(realRoot, versionsRoot);
+        }
+
+        @Override
+        public CompletableFuture<List<FileWithLocation>> listForDir(Path relativeDirectory, Location.When when) {
+            var location = when == Location.When.Current ? RemoteCurrent : RemoteVersions;
+            return CompletableFuture.supplyAsync(() -> {
+                ensureConnection();
+                Vector<LsEntry> files;
+                String dir = pathAsStr(rootDir(when).resolve(relativeDirectory));
+                try {
+                    files = rlInfo.channelSftp.ls(dir);
+                } catch (SftpException e) {
+                    if (!relativeDirectory.toString().isEmpty() && e.id == 2)
+                        return List.of();
+                    System.out.println(dir);
+                    e.printStackTrace();
                     return List.of();
-                System.out.println(dir);
-                e.printStackTrace();
-                return List.of();
-            }
-            return files
-                .stream()
-                .filter(RemoteLister::isValidFolder)
-                .map(file -> new DirectoryLister.FileWithLocation(
-                    location,
-                    file.getFilename(),
-                    file.getAttrs().isDir()))
-                .collect(Collectors.toList());
-        }, pool);
+                }
+                return files
+                    .stream()
+                    .filter(RemoteFileAccessor::isValidFolder)
+                    .map(file -> new DirectoryLister.FileWithLocation(
+                        location,
+                        file.getFilename(),
+                        file.getAttrs().isDir()))
+                    .collect(Collectors.toList());
+            }, pool);
+        }
+
+        @Override
+        public CompletableFuture<InputStream> readFile(Path relativePath, Location.When when) {
+            CompletableFuture<InputStream> future = new CompletableFuture<>();
+            pool.submit(() -> {
+                ensureConnection();
+                Path fullPath = when.which(realRoot, versionsRoot).resolve(relativePath);
+                String path = fullPath.toString().replace('\\', '/');
+                try {
+                    future.complete(rlInfo.channelSftp.get(path));
+                } catch (SftpException e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+            });
+            return future;
+        }
     }
+
+    /* **************************************************************
+        MARK: - Static Stuff?
+    ************************************************************** */
 
     private static String pathAsStr(Path p) {
         return p.toString().replace("\\", "/");
@@ -181,14 +231,14 @@ public class RemoteLister implements SingleDirLister {
             f.getFilename().equals(".stfolder"));
     }
 
-    private record RlPair(WeakReference<RemoteLister> listenerRef, RlInfo info) {
+    private record RlPair(WeakReference<RemoteFileAccessor> listenerRef, RlInfo info) {
         private static final ArrayList<RlPair> rls = new ArrayList<>();
 
         static {
             SyncPickerApp.registerShutdownOperation(RlPair::shutdown);
         }
 
-        private static void addNew(RemoteLister lister) {
+        private static void addNew(RemoteFileAccessor lister) {
             RlPair rl = new RlPair(new WeakReference<>(lister), lister.rlInfo);
             pool.submit(() -> {
                 rls.add(rl);
@@ -214,7 +264,6 @@ public class RemoteLister implements SingleDirLister {
     }
 
     private static class RlInfo {
-        private Path        rootDir     = null;
         private Session     session     = null;
         private Channel     channel     = null;
         private ChannelSftp channelSftp = null;
@@ -233,9 +282,5 @@ public class RemoteLister implements SingleDirLister {
             return session != null && session.isConnected() &&
                    channel != null && channel.isConnected();
         }
-    }
-
-    public RemoteLister duplicate(StFile.Location location) {
-        return new RemoteLister(user, host, port, pass, pathToKey, location);
     }
 }
