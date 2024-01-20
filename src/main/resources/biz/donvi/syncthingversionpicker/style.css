@@ -30,3 +30,8 @@
     -fx-font-weight: bold;
     -fx-font-family: Monospaced, monospace;
 }
+
+.deleted {
+    -fx-strikethrough: true;
+    -fx-fill: lightgray;
+}

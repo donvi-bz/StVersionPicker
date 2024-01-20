@@ -15,6 +15,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.kordamp.ikonli.evaicons.Evaicons;
@@ -291,6 +292,11 @@ public class PickerController implements Initializable {
                 setText("");
                 setGraphic(outerBox);
                 fileName.setText(file.fileName);
+                if (file.getPrimaryLocation() != Location.LocalCurrent) {
+                    fileName.getStyleClass().add("deleted");
+                } else {
+                    fileName.getStyleClass().remove("deleted");
+                }
                 if (file instanceof StFileGroup group) {
                     if (!outerBox.getChildren().isEmpty())
                         outerBox.getChildren().set(0, fileGraphic);
