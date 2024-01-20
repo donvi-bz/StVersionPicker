@@ -13,7 +13,14 @@ import java.util.stream.Collectors;
 
 public final class StDirectory extends StFile {
 
+    private static final String /*language=RegExp*/
+        pName   = "(?<name>.*?)", /*language=RegExp*/
+        pDate   = "(?<date>\\d{8}-\\d{6})", /*language=RegExp*/
+        pExt    = "(?<ext>\\..*)", /*language=RegExp*/
+        pDevice = "(?<device>[A-Z0-9]{7})";
+
     /**
+     * TODO: Update for addition of conclict pattern
      * A pattern for matching syncthing version files. These come in the format <pre>
      *     Original:    importantDocument.md
      *     Versioned:   importantDocument~20230829-151733.md
@@ -27,7 +34,10 @@ public final class StDirectory extends StFile {
      * concatinate groups 1 & 3 together like so: {@code m.group(1) + m.group(3)}.
      */
     @SuppressWarnings("SpellCheckingInspection")
-    private static final Pattern syncPattern = Pattern.compile("^(.*?)(~\\d{8}-\\d{6})(\\..*)$");
+    private static final Pattern
+        versionPattern  = Pattern.compile("^" + pName + "~" + pDate + pExt + "$"),
+        conflictPattern = Pattern.compile("^" + pName + "\\.sync-conflict-" + pDate + "-" + pDevice + pExt + "$");
+
 
     /**
      * The location if this {@code StDirectory}. Unlike a {@link StFileGroup}, a {@code StDirectory} only ever has one
@@ -51,10 +61,12 @@ public final class StDirectory extends StFile {
         return location;
     }
 
-    /** <b>FIXME: OUTDATED</b><br/>
+    /**
+     * <b>FIXME: OUTDATED</b><br/>
      * Gets a list of {@link StFile}s that are within this directory using the provided
      * {@link FullStLister locationLister}. The returned list will contain files from all places listed in the
      * {@link Location Location} enum (currently only 4 locations).
+     *
      * @return A list of {@code StFile}s that are in this directory.
      */
     public CompletableFuture<List<StFile>> listFilesAsync() {
@@ -85,10 +97,10 @@ public final class StDirectory extends StFile {
                         children.add(new StDirectory(localStFolder, fullStLister, path, mainLoc));
                     } else {
                         // To start, make a new file group.
-                        StFileGroup fileGroup = new StFileGroup(localStFolder,this , path);
+                        StFileGroup fileGroup = new StFileGroup(localStFolder, this, path);
                         // Then, for each file in the list, add a new file to the file group
                         for (FileWithInfo file : fileList)
-                            fileGroup.add(fileGroup.new File(file.nameRaw, file.loc, file.timestamp));
+                            fileGroup.add(fileGroup.new File(file.nameRaw, file.loc, file.timestamp, file.conflictor));
                         // And lastly, add it to the final result
                         children.add(fileGroup);
                     }
@@ -99,20 +111,21 @@ public final class StDirectory extends StFile {
 
     /**
      * A record purely for moving file info around conveniently.
-     * @param loc The {@link Location Location} that this file came from.
-     * @param nameRaw The name exactly as written in the file system.
-     * @param isDir {@code true} if this is a directory, {@code false} if it is a file.
+     *
+     * @param loc       The {@link Location Location} that this file came from.
+     * @param nameRaw   The name exactly as written in the file system.
+     * @param isDir     {@code true} if this is a directory, {@code false} if it is a file.
      * @param nameFixed The name of the file with the syncthing version timestamp removed. Expect there to
-     *                 <em>often</em> be multiple files with the same {@code nameFixed}. That's kinda central to the
+     *                  <em>often</em> be multiple files with the same {@code nameFixed}. That's kinda central to the
      *                  point of the whole application.
-     * @param sortName A name specifically for sorting files. This is almost the same as the {@link #nameFixed} except
-     *                 that directories have a {@code !} appended to the end to make them sort differently in the map.
-     *                 This name is not used for any reasons other than sorting the files.
+     * @param sortName  A name specifically for sorting files. This is almost the same as the {@link #nameFixed} except
+     *                  that directories have a {@code !} appended to the end to make them sort differently in the map.
+     *                  This name is not used for any reasons other than sorting the files.
      * @param timestamp The syncthing timestamp that was in the raw file name.
      */
     private record FileWithInfo(
         Location loc, String nameRaw, boolean isDir,
-        String nameFixed, String sortName, String timestamp
+        String nameFixed, String sortName, String timestamp, String conflictor
     ) {
         /**
          * Converts a {@link DirectoryLister.FileWithLocation FileWithLocation}
@@ -123,15 +136,22 @@ public final class StDirectory extends StFile {
          * @return A {@code FileWithInfo with additional information}.
          */
         static FileWithInfo into(DirectoryLister.FileWithLocation f) {
-            Matcher m = syncPattern.matcher(f.name());
+            Matcher mv = versionPattern.matcher(f.name());
+            Matcher mc = conflictPattern.matcher(f.name());
             String nameFixed = f.name();
             String timestamp = "";
-            if (m.matches()) {
-                nameFixed = m.group(1) + m.group(3);
-                timestamp = m.group(2);
+            String conflictor = "";
+            Matcher usedMatcher = mc.matches() ? mc : mv.matches() ? mv : null;
+            if (usedMatcher != null) {
+                nameFixed = usedMatcher.group("name") + usedMatcher.group("ext");
+                timestamp = usedMatcher.group("date");
             }
+            if (usedMatcher == mc) {
+                conflictor = mc.group("device");
+            }
+
             String sortName = nameFixed + (f.isDir() ? "!" : "");
-            return new FileWithInfo(f.location(), f.name(), f.isDir(), nameFixed, sortName, timestamp);
+            return new FileWithInfo(f.location(), f.name(), f.isDir(), nameFixed, sortName, timestamp, conflictor);
         }
 
         @Override

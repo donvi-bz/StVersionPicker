@@ -75,19 +75,21 @@ public final class StFileGroup extends StFile {
     }
 
     public class File implements Comparable<File> {
-        private static final DateTimeFormatter dfInput   = DateTimeFormatter.ofPattern("~yyyyMMdd-HHmmss");
+        private static final DateTimeFormatter dfInput   = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
         private static final DateTimeFormatter dfDisplay = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm a");
 
         public final  String        nameRaw;
         public final  Location      location;
         private final String        timestamp;
         private final LocalDateTime localDateTime;
+        private final String        conflictor;
 
-        File(String nameRaw, Location location, String timestamp) {
+        File(String nameRaw, Location location, String timestamp, String conflictor) {
             this.nameRaw = nameRaw;
             this.location = location;
             this.timestamp = timestamp;
             this.localDateTime = "".equals(timestamp) ? null : LocalDateTime.parse(timestamp, dfInput);
+            this.conflictor = conflictor != null ? conflictor : "";
         }
 
         public StFileGroup getParent() {
@@ -135,8 +137,8 @@ public final class StFileGroup extends StFile {
             if (this.localDateTime == null || that.localDateTime == null) {
                 return this.location.compareTo(that.location);
             } else if (
-                this.localDateTime.truncatedTo(ChronoUnit.MINUTES).equals(
-                    that.localDateTime.truncatedTo(ChronoUnit.MINUTES))
+                this.localDateTime.truncatedTo(ChronoUnit.SECONDS).equals(
+                    that.localDateTime.truncatedTo(ChronoUnit.SECONDS))
             ) {
                 return this.location.compareTo(that.location);
             } else {
