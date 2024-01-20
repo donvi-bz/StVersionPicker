@@ -21,7 +21,7 @@
                 <TreeView fx:id="treeView" prefWidth="1000.0" />
                 <VBox prefWidth="100.0">
                     <children>
-                        <TextFlow prefHeight="200.0" prefWidth="200.0">
+                        <TextFlow prefWidth="200.0">
                             <TextFlow styleClass="h3">
                                 <Text text="File Name: " />
                             </TextFlow>
@@ -29,7 +29,7 @@
                                 <Text fx:id="fileNameText" layoutX="10.0" layoutY="10.0" text="some_name.txt" />
                             </TextFlow>
                         </TextFlow>
-                        <TextFlow prefHeight="200.0" prefWidth="200.0">
+                        <TextFlow prefWidth="200.0">
                             <TextFlow styleClass="h3">
                                 <Text text="File Exists On: " />
                             </TextFlow>
@@ -40,7 +40,7 @@
                                 <Text layoutX="10.0" layoutY="10.0" text="Remote" />
                             </TextFlow>
                         </TextFlow>
-                        <TextFlow prefHeight="200.0" prefWidth="200.0">
+                        <TextFlow prefWidth="200.0">
                             <TextFlow styleClass="h3">
                                 <Text text="Backups On: " />
                             </TextFlow>
