@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -16,7 +17,7 @@ import java.util.concurrent.CompletableFuture;
 public final class StFileGroup extends StFile {
 
     private final StDirectory parentDir;
-    private final List<File> files = new ArrayList<>();
+    private final List<File>  files = new ArrayList<>();
 
     private Location location = null;
 
@@ -130,8 +131,17 @@ public final class StFileGroup extends StFile {
 
 
         @Override
-        public int compareTo(File o) {
-            return this.timestamp.compareTo(o.timestamp);
+        public int compareTo(File that) {
+            if (this.localDateTime == null || that.localDateTime == null) {
+                return this.location.compareTo(that.location);
+            } else if (
+                this.localDateTime.truncatedTo(ChronoUnit.MINUTES).equals(
+                    that.localDateTime.truncatedTo(ChronoUnit.MINUTES))
+            ) {
+                return this.location.compareTo(that.location);
+            } else {
+                return -this.localDateTime.compareTo(that.localDateTime);
+            }
         }
 
 

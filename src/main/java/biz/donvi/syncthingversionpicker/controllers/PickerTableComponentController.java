@@ -19,6 +19,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.ResourceBundle;
 
 public class PickerTableComponentController implements Initializable {
@@ -52,10 +53,12 @@ public class PickerTableComponentController implements Initializable {
         columnDateCreated.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
             x.getValue().getTimeStamp()
         ));
+        columnDateCreated.setComparator(Comparator.comparing(PickerTableComponentController::toSortableDate));
 
         columnTimeSinceCreation.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
             x.getValue().getTimeAgo(LocalDateTime.now())
         ));
+        columnTimeSinceCreation.setSortable(false);
 
         columnName.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
             x.getValue().nameRaw
@@ -63,6 +66,19 @@ public class PickerTableComponentController implements Initializable {
 
         fileGroupTable.getStyleClass().add(Styles.DENSE);
     }
+
+    private static String toSortableDate(String str) {
+        var split = str.split(" ");
+        if (split.length != 3)
+            return str;
+        var ampm = switch (split[2]) {
+            case "AM" -> "1";
+            case "PM" -> "2";
+            default -> "0";
+        };
+        return split[0] + ampm + split[1];
+    }
+
 
     public void setSelected(StFileGroup fileGroup) {
         if (fileGroup == null) {
@@ -72,7 +88,7 @@ public class PickerTableComponentController implements Initializable {
         }
     }
 
-    /****************************************************************
+    /* **************************************************************
      MARK: - PickerTableRow
      ****************************************************************/
 
@@ -111,7 +127,7 @@ public class PickerTableComponentController implements Initializable {
         }
     }
 
-    /****************************************************************
+    /* **************************************************************
      MARK: - PickerTableContextMenu
      ****************************************************************/
 
