@@ -3,9 +3,9 @@ package biz.donvi.syncthingversionpicker.controllers;
 import atlantafx.base.theme.Styles;
 import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
+import biz.donvi.syncthingversionpicker.files.Location;
 import biz.donvi.syncthingversionpicker.files.StDirectory;
 import biz.donvi.syncthingversionpicker.files.StFile;
-import biz.donvi.syncthingversionpicker.files.Location;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -15,7 +15,6 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.kordamp.ikonli.evaicons.Evaicons;
@@ -99,6 +98,7 @@ public class PickerController implements Initializable {
                 fileHasBackupsOnRemoteText.setText(String.valueOf(countRemoteVersions));
             }
         });
+
 
     }
 
@@ -215,7 +215,7 @@ public class PickerController implements Initializable {
     }
 
 
-    /****************************************************************
+    /* **************************************************************
      MARK: - ComboBoxListCell
      ****************************************************************/
 
@@ -260,7 +260,9 @@ public class PickerController implements Initializable {
      MARK: - FileTreeCell
      ****************************************************************/
 
-    private static class FileTreeCell extends TreeCell<StFile> {
+    private class FileTreeCell extends TreeCell<StFile> {
+
+        private final FileTreeContextMenu contextMenu = new FileTreeContextMenu();
 
         private final FontIcon folderGraphic = new FontIcon(Evaicons.FOLDER);
         private final FontIcon fileGraphic   = new FontIcon(Evaicons.FILE);
@@ -279,6 +281,7 @@ public class PickerController implements Initializable {
             remoteFlow.getStyleClass().addAll("badge", "b-purple");
             outerBox.setSpacing(4);
             outerBox.getChildren().addAll(folderGraphic, fileName, localFlow, remoteFlow);
+            setContextMenu(contextMenu);
         }
 
         @Override
@@ -288,6 +291,7 @@ public class PickerController implements Initializable {
             if (file == null || empty) {
                 setText(null);
                 setGraphic(null);
+                fileName.getStyleClass().remove("deleted");
             } else {
                 setText("");
                 setGraphic(outerBox);
@@ -308,6 +312,7 @@ public class PickerController implements Initializable {
                     setOrHideFlow(Location.LocalVersions, 0);
                     setOrHideFlow(Location.RemoteVersions, 0);
                 }
+                contextMenu.updateMenuForFile(this);
             }
         }
 
@@ -326,5 +331,39 @@ public class PickerController implements Initializable {
             }
         }
 
+    }
+
+    /* **************************************************************
+     MARK: - FileTreeCell
+     ****************************************************************/
+
+    private class FileTreeContextMenu extends ContextMenu {
+        final MenuItem refreshFolder = new MenuItem("Refresh Folder");
+
+        private FileTreeCell     fileTreeCell;
+        private TreeItem<StFile> parentFolder;
+
+        {
+            var items = this.getItems();
+            items.add(refreshFolder);
+
+            refreshFolder.setOnAction(event -> {
+                parentFolder.getChildren().clear();
+                scanAndAddFiles(parentFolder);
+            });
+        }
+
+        public void updateMenuForFile(FileTreeCell file) {
+            this.fileTreeCell = file;
+            if (file != null) {
+                parentFolder = file.getTreeItem();
+                if (parentFolder.getValue() instanceof StFileGroup) {
+                    parentFolder = parentFolder.getParent();
+                    refreshFolder.setText("Refresh Parent Folder");
+                } else {
+                    refreshFolder.setText("Refresh Folder");
+                }
+            }
+        }
     }
 }

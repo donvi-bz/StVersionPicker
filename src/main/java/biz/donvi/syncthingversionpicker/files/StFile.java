@@ -37,11 +37,14 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      */
     public final String fileExtension;
 
+    public final StDirectory parentDir;
 
-    protected StFile(StFolder localStFolder, Path relativePath) {
+
+    protected StFile(StFolder localStFolder, Path relativePath, StDirectory parentDir) {
         this.localStFolder = localStFolder;
         this.relativePath = relativePath;
         this.fileName = relativePath.getFileName().toString();
+        this.parentDir = parentDir;
         this.fileExtension = fileName.contains(".")
             ? fileName.substring(fileName.lastIndexOf(".")) : "";
     }
@@ -102,7 +105,7 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
 
         FullStLister lister = new FullStLister(localLister, remoteLister);
 
-        return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalCurrent);
+        return new StDirectory(folder.local(), lister, Paths.get(""), Location.LocalCurrent, null);
     }
 
 }

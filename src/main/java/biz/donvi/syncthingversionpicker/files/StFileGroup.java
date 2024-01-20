@@ -16,14 +16,12 @@ import java.util.concurrent.CompletableFuture;
 
 public final class StFileGroup extends StFile {
 
-    private final StDirectory parentDir;
     private final List<File>  files = new ArrayList<>();
 
     private Location location = null;
 
     StFileGroup(StFolder localStFolder, StDirectory parentDir, Path relativePath) {
-        super(localStFolder, relativePath);
-        this.parentDir = parentDir;
+        super(localStFolder, relativePath, parentDir);
     }
 
     /**

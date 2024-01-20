@@ -50,8 +50,8 @@ public final class StDirectory extends StFile {
      */
     final FullStLister fullStLister;
 
-    StDirectory(StFolder localStFolder, FullStLister fullStLister, Path relativePath, Location location) {
-        super(localStFolder, relativePath);
+    StDirectory(StFolder localStFolder, FullStLister fullStLister, Path relativePath, Location location, StDirectory parentDir) {
+        super(localStFolder, relativePath, parentDir);
         this.fullStLister = fullStLister;
         this.location = location;
     }
@@ -94,7 +94,7 @@ public final class StDirectory extends StFile {
                             .toList().get(0); // Take the first option in the list.
                         // Resolve the path of the new directory.
                         // Lastly, all we got to do is put this info into the
-                        children.add(new StDirectory(localStFolder, fullStLister, path, mainLoc));
+                        children.add(new StDirectory(localStFolder, fullStLister, path, mainLoc, parentDir));
                     } else {
                         // To start, make a new file group.
                         StFileGroup fileGroup = new StFileGroup(localStFolder, this, path);
