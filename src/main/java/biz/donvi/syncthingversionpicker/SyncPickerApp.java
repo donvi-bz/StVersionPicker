@@ -35,7 +35,7 @@ public class SyncPickerApp extends Application {
         FXMLLoader homeLoader = new FXMLLoader(SyncPickerApp.class.getResource("home-view.fxml"));
         pickerLoader = new FXMLLoader(SyncPickerApp.class.getResource("picker-view.fxml"));
         Scene scene = new Scene(homeLoader.load(), 600, 400);
-        stage.setTitle("Hello!");
+        stage.setTitle("Syncthing Version Picker");
         stage.setOnCloseRequest(event -> {
             for (Runnable action : shutdownOperations) {
                 action.run();
