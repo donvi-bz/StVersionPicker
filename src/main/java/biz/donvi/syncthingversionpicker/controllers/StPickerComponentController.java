@@ -42,6 +42,10 @@ public class StPickerComponentController implements Initializable {
             syncthingApiKey.setText(apiKey);
     }
 
+    public String getTexts() {
+        return syncthingUrl.getText() + "\t" + syncthingApiKey.getText();
+    }
+
     /**
      * Clears the state of the previous Syncthing test. (Also clears the text on the UI)
      */

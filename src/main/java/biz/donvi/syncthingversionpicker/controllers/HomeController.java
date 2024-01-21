@@ -10,9 +10,13 @@ import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 public class HomeController {
 
@@ -28,10 +32,12 @@ public class HomeController {
 
     RemoteFileAccessor remoteFileAccessor;
 
+
     @FXML
     public void initialize() {
-        localStPickerController.setTexts("http://127.0.0.1:8384", "shyoNqcSgEkjbJrD6WLPfa9egpj7PwuR");
+        localStPickerController.setTexts("http://127.0.0.1:8384", "");
         remoteStPickerController.setTexts("https://192.168.68.5:8384", "Dsi7UuwNwPzD9XfUnHPUCPjTkKcYUZza");
+        readSettingsFile();
         clearSshTestAnswer();
     }
 
@@ -46,6 +52,8 @@ public class HomeController {
         CompletableFuture.allOf(futures).thenApplyAsync(results -> {
             try {
                 if (Arrays.stream(futures).allMatch(CompletableFuture::resultNow)) {
+                    // Save state
+                    writeSettingsFile();
                     // Put in global state
                     return SyncPickerApp.getApplication().setStConnections(
                         localStPickerController.syncthingScraper,
@@ -98,5 +106,37 @@ public class HomeController {
             sshTestBtn.setDisable(false);
             return e.isEmpty();
         }, Platform::runLater);
+    }
+
+    private final Path stvpHome = Path.of(System.getProperty("user.home"), "StVersionPicker");
+
+    void readSettingsFile() {
+        try {
+            var path = stvpHome.resolve("connections");
+            if (path.toFile().exists()) {
+                var lines = Files.readAllLines(path);
+                var local = lines.get(0).split("\t");
+                var remote = lines.get(1).split("\t");
+                localStPickerController.setTexts(local[0], local[1]);
+                remoteStPickerController.setTexts(remote[0], remote[1]);
+            }
+        } catch (IndexOutOfBoundsException | IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    void writeSettingsFile() {
+        var lines = Stream.of(localStPickerController, remoteStPickerController)
+                          .map(StPickerComponentController::getTexts)
+                          .toList();
+        try {
+            var file = stvpHome.resolve("connections");
+            stvpHome.toFile().mkdirs();
+            Files.write(file, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
     }
 }
