@@ -12,6 +12,7 @@ module biz.donvi.syncthingversionpicker {
     requires org.kordamp.ikonli.feather;
     requires org.kordamp.ikonli.evaicons;
     requires com.jcraft.jsch;
+    requires org.apache.logging.log4j;
 
     opens biz.donvi.syncthingversionpicker to javafx.fxml, com.fasterxml.jackson.databind;
     exports biz.donvi.syncthingversionpicker;

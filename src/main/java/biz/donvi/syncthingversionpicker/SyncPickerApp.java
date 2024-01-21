@@ -7,13 +7,17 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.util.ArrayList;
 
 public class SyncPickerApp extends Application {
+    private static final Logger logger = LogManager.getLogger(SyncPickerApp.class);
+
     private static final ArrayList<Runnable> shutdownOperations = new ArrayList<>();
-    private static SyncPickerApp application;
+    private static       SyncPickerApp       application;
 
     private SyncthingScraper localSyncScraper;
     private SyncthingScraper   remoteSyncScraper;
@@ -41,6 +45,7 @@ public class SyncPickerApp extends Application {
                 action.run();
             }
         });
+        logger.info("App started, showing home page.");
         stage.setScene(scene);
         stage.show();
     }
@@ -52,6 +57,7 @@ public class SyncPickerApp extends Application {
     }
 
     public void setPickerStage() throws IOException {
+        logger.info("Setting picker stage");
         Scene scene = new Scene(pickerLoader.load(), 1000, 500);
         scene.getStylesheets().add("/biz/donvi/syncthingversionpicker/style.css");
         stage.setScene(scene);

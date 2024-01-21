@@ -12,6 +12,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.stage.FileChooser;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,6 +25,8 @@ import java.util.Comparator;
 import java.util.ResourceBundle;
 
 public class PickerTableComponentController implements Initializable {
+
+    private static final Logger logger = LogManager.getLogger(PickerController.class);
 
     @FXML
     private TableView<File> fileGroupTable;
@@ -182,15 +186,15 @@ public class PickerTableComponentController implements Initializable {
                             if (in != null) try {
                                 Files.copy(in, saveLocation.toPath(), StandardCopyOption.REPLACE_EXISTING);
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                logger.warn("[some warning here]", e);
                             }
 
                             if (ex instanceof FileNotFoundException notFoundException) {
-                                notFoundException.printStackTrace();
+                                logger.warn("[some warning here]", notFoundException);
                             } else if (ex instanceof IOException ioException) {
-                                ioException.printStackTrace();
+                                logger.warn("[some warning here]", ioException);
                             } else {
-                                ex.printStackTrace();
+                                logger.warn("[some warning here]", ex);
                             }
                         }, Platform::runLater);
             });

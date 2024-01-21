@@ -17,6 +17,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.kordamp.ikonli.evaicons.Evaicons;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
@@ -29,6 +31,7 @@ import java.util.ResourceBundle;
 
 public class PickerController implements Initializable {
 
+    private static final Logger logger = LogManager.getLogger(PickerController.class);
 
     @FXML
     public TextFlow fileExistsOnLocalFlow;
@@ -110,6 +113,7 @@ public class PickerController implements Initializable {
         );
         var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 
+        logger.debug("Combo box selected new folder `{}`", comboBox.getValue().label());
 
         scanAndAddFiles(root);
         // Adding styles
@@ -131,6 +135,8 @@ public class PickerController implements Initializable {
         if (!recursive)
             parent.addEventHandler(TreeItem.branchExpandedEvent(), treeItemEventHandler);
         // Adding Data. We have to do each location separately.
+        String pds = parentDir.getRelativePath().toString();
+        logger.debug("Listing all files for directory `{}`", pds.isEmpty() ? "." : pds);
         parentDir.listFilesAsync().thenAcceptAsync(files -> {
             // Now the logic for adding files once we actually get them.
             var children = parent.getChildren();

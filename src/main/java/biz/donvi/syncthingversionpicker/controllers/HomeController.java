@@ -18,7 +18,13 @@ import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+
 public class HomeController {
+
+    private static final Logger logger = LogManager.getLogger(HomeController.class);
 
     @FXML private StPickerComponentController localStPickerController;
     @FXML private StPickerComponentController remoteStPickerController;
@@ -43,6 +49,7 @@ public class HomeController {
 
     @FXML
     protected void onSubmitApiKeyBtnPress() {
+        logger.info("Submit button pressed. Attempting to connect.");
         @SuppressWarnings("unchecked")
         CompletableFuture<Boolean>[] futures = new CompletableFuture[]{
             localStPickerController.testSyncthingIfNecessary(),
@@ -52,6 +59,7 @@ public class HomeController {
         CompletableFuture.allOf(futures).thenApplyAsync(results -> {
             try {
                 if (Arrays.stream(futures).allMatch(CompletableFuture::resultNow)) {
+                    logger.info("All connections valid, connecting in full.");
                     // Save state
                     writeSettingsFile();
                     // Put in global state
@@ -61,6 +69,7 @@ public class HomeController {
                         remoteFileAccessor
                     );
                 } else if (futures[0].resultNow()) {
+                    logger.info("Either remote syncthing or remote ssh invalid, connecting only to local.");
                     return SyncPickerApp.getApplication().setStConnections(
                         localStPickerController.syncthingScraper,
                         null, null
@@ -69,6 +78,7 @@ public class HomeController {
                     return null;
                 }
             } catch (IOException e) {
+                logger.warn("Could not connect because of error ", e);
                 throw new RuntimeException(e);
             }
         }).thenApplyAsync(app -> {
@@ -89,6 +99,8 @@ public class HomeController {
 
     @FXML
     protected CompletableFuture<Boolean> testSsh() {
+        logger.trace("Will test ssh connection to {}@{}:{}",
+                     sshUser.getText(), shhAddress.getText(), sshPort.getText());
         remoteFileAccessor = new RemoteFileAccessor(
             sshUser.getText(),
             shhAddress.getText(),
@@ -101,6 +113,7 @@ public class HomeController {
         sshTestAnswer.setText("");
         return remoteFileAccessor.setupSessionAsync().thenApplyAsync(e -> {
             String message = e.isEmpty() ? "Connected" : e.get().getLocalizedMessage();
+            logger.debug("SSH connection test results: {}", message);
             sshTestAnswer.setText(message);
             sshTestBtn.setText("Test SSH Connection");
             sshTestBtn.setDisable(false);
@@ -121,8 +134,7 @@ public class HomeController {
                 remoteStPickerController.setTexts(remote[0], remote[1]);
             }
         } catch (IndexOutOfBoundsException | IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            logger.warn("Could not read file for reason", e);
         }
     }
 
@@ -135,8 +147,7 @@ public class HomeController {
             stvpHome.toFile().mkdirs();
             Files.write(file, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
+            logger.warn("Could not read file for reason", e);
         }
     }
 }

@@ -57,6 +57,8 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      */
     public abstract Location getPrimaryLocation();
 
+    public Path getRelativePath() { return relativePath; }
+
     @Override
     public int compareTo(StFile o) {
         return this.relativePath.compareTo(o.relativePath);
@@ -95,13 +97,15 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
         var remoteRealPath = Optional.ofNullable(folder.remote()).map(StFolder::path).map(Path::of);
         var remoteVersPath = Optional.ofNullable(folder.remote()).map(StFolder::versionsPath).map(Path::of);
 
-        if (localRealPath.isEmpty() || localVersPath.isEmpty())
-            throw new RuntimeException("Must have a valid local path at least!");
-
-        LocalDirectoryLister localLister = new LocalDirectoryLister(localRealPath.get(), localVersPath.get());
+        DirectoryLister localLister = (localRealPath.isPresent() && localVersPath.isPresent())
+            ? new LocalDirectoryLister(localRealPath.get(), localVersPath.get())
+            : DirectoryLister.emptyLister;
         DirectoryLister remoteLister = (remoteRealPath.isPresent() && remoteVersPath.isPresent())
             ? remoteListerProvider.apply(remoteRealPath.get(), remoteVersPath.get())
             : DirectoryLister.emptyLister;
+
+        if (localLister == DirectoryLister.emptyLister && remoteLister == DirectoryLister.emptyLister)
+            throw new RuntimeException("At lease one lister should be valid!!");
 
         FullStLister lister = new FullStLister(localLister, remoteLister);
 

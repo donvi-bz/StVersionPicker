@@ -6,12 +6,16 @@ import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.TextField;
 import javafx.scene.text.Text;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
 import java.util.ResourceBundle;
 import java.util.concurrent.CompletableFuture;
 
 public class StPickerComponentController implements Initializable {
+
+    private static final Logger logger = LogManager.getLogger(StPickerComponentController.class);
 
     @FXML private TextField syncthingUrl;
     @FXML private TextField syncthingApiKey;
@@ -32,7 +36,8 @@ public class StPickerComponentController implements Initializable {
      * Sets the two text fields (url & apiKey) in this component.
      * <br/>
      * Note: Passing {@code null} will not modify the text. To clear the text, pass an empty string.
-     * @param url The new url text.
+     *
+     * @param url    The new url text.
      * @param apiKey The new apiKey text.
      */
     public void setTexts(String url, String apiKey) {
@@ -60,26 +65,31 @@ public class StPickerComponentController implements Initializable {
      * this method will return a pre-completed future saying that it is valid. If the last test
      * returned invalid, or the {@code SyncthingScraper} hasn't yet been tested, this method will
      * test the scraper and return a future with the test results.
+     *
      * @return A {@link CompletableFuture} with this {@link SyncthingScraper}'s test results.<br/>
-     *         Note: {@code true} for success, {@code false} for failure.
+     * Note: {@code true} for success, {@code false} for failure.
      */
     protected CompletableFuture<Boolean> testSyncthingIfNecessary() {
         // Short-circuit if we already have a good one. Since there is a bunch of thread
         // hopping involved in the test, we'd like to avoid it all if we KNOW we can.
-        if (syncthingScraperValid && syncthingScraper != null)
+        if (syncthingScraperValid && syncthingScraper != null) {
+            logger.trace("Did not need to test syncthing connection for %s as we already know it is valid."
+                             .formatted(syncthingUrl.getText()));
             return CompletableFuture.completedFuture(true);
             // And if we can't - Check for real.
-        else return testSyncthing();
+        } else return testSyncthing();
     }
 
     /**
      * Tests the {@link SyncthingScraper} to see if a connection can be made. This method re-tests every
      * time it is called regardless of the state of the component.
+     *
      * @return A {@link CompletableFuture} with this {@link SyncthingScraper}'s test results.<br/>
-     *         Note: {@code true} for success, {@code false} for failure.
+     * Note: {@code true} for success, {@code false} for failure.
      */
     @FXML
     protected CompletableFuture<Boolean> testSyncthing() {
+        logger.trace("Will test syncthing connection for %s".formatted(syncthingUrl.getText()));
         clearSyncthingAnswer();
         syncthingTestBtn.setText("Testing...");
         int currentNum = ++syncTestCount;
@@ -90,6 +100,8 @@ public class StPickerComponentController implements Initializable {
             );
             return scraper.testConnection();
         }).thenApplyAsync(testResult -> {
+            logger.debug("Syncthing connection test results for %s - %s"
+                             .formatted(syncthingUrl.getText(), testResult.msg()));
             if (currentNum < syncTestCount)
                 return null;
             if (testResult.valid())

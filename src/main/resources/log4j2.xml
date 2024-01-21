@@ -1,0 +1,12 @@
+<Configuration status="WARN">
+    <Appenders>
+        <Console name="out" target="SYSTEM_OUT">
+            <PatternLayout pattern="%style{%d{HH:mm:ss.SSS}}{magenta} %style{[}{green}%style{%-34t}{white}%style{]}{green} %highlight{%-5level}{DEBUG=white, TRACE=bright_black} %style{%-40c{-3}}{cyan} %highlight{| %msg}{DEBUG=white, TRACE=bright_black}%n" disableAnsi="false"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Root level="trace">
+            <AppenderRef ref="out"/>
+        </Root>
+    </Loggers>
+</Configuration>

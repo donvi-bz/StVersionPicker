@@ -5,10 +5,10 @@ import biz.donvi.syncthingversionpicker.files.DirectoryLister;
 import biz.donvi.syncthingversionpicker.files.Location;
 import com.jcraft.jsch.*;
 import com.jcraft.jsch.ChannelSftp.LsEntry;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.nio.file.Path;
@@ -23,6 +23,8 @@ import static biz.donvi.syncthingversionpicker.files.Location.RemoteVersions;
 
 public class RemoteFileAccessor {
     private static final ExecutorService pool = Executors.newFixedThreadPool(1);
+
+    private static final Logger logger = LogManager.getLogger(RemoteFileAccessor.class);
 
     private final String host;
     private final int    port;
@@ -62,8 +64,7 @@ public class RemoteFileAccessor {
             try {
                 setupSessionAndChannel();
             } catch (JSchException | SftpException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
+                logger.error("Error setting up session and channel", e);
             }
         });
         return new RemoteLister(realRoot, versionsRoot);
@@ -140,13 +141,8 @@ public class RemoteFileAccessor {
         if (!rlInfo.validateConnections()) {
             try {
                 setupSessionAndChannel();
-            } catch (JSchException e) {
-                System.err.println("Failed to ensure connection was up.");
-                e.printStackTrace();
-                throw new RuntimeException(e);
-            } catch (SftpException e) {
-                e.printStackTrace();
-                throw new RuntimeException(e);
+            } catch (JSchException | SftpException e) {
+                logger.error("Failed to ensure connection was up.", e);
             }
         }
     }
@@ -157,8 +153,9 @@ public class RemoteFileAccessor {
 
     public class RemoteLister implements DirectoryLister {
 
-        private final Path realRoot;
-        private final Path versionsRoot;
+        private final Path    realRoot;
+        private final Path    versionsRoot;
+        private       boolean supressPermissionErrors = false;
 
         private RemoteLister(Path realRoot, Path versionsRoot) {
             this.realRoot = realRoot;
@@ -180,10 +177,19 @@ public class RemoteFileAccessor {
                 try {
                     files = rlInfo.channelSftp.ls(dir);
                 } catch (SftpException e) {
-                    if (!relativeDirectory.toString().isEmpty() && e.id == 2)
+                    String relativeDirStr = relativeDirectory.toString();
+                    if (!relativeDirStr.isEmpty() && e.id == 2)
                         return List.of();
-                    System.out.println(dir);
-                    e.printStackTrace();
+                    else if (e.id == 3) {
+                        if (!supressPermissionErrors)
+                            logger.warn("Could not list files for directory `{}` - Permission Denied", dir);
+                        if (relativeDirStr.isEmpty() && !supressPermissionErrors) {
+                            logger.warn("No perms on root. Suppressing future warnings.");
+                            supressPermissionErrors = true;
+                        }
+                        return List.of();
+                    }
+                    logger.warn("Could not list files for directory " + dir, e);
                     return List.of();
                 }
                 return files
@@ -207,8 +213,7 @@ public class RemoteFileAccessor {
                 try {
                     future.complete(rlInfo.channelSftp.get(path));
                 } catch (SftpException e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
+                    logger.error("Could not get file at path " + path, e);
                 }
             });
             return future;
