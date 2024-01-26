@@ -2,6 +2,8 @@ package biz.donvi.syncthingversionpicker.files;
 
 import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.controllers.PickerController;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +14,7 @@ import java.util.function.BiFunction;
  * A {@code StFile} represents either a file with multiple version, or a directory.
  */
 public abstract sealed class StFile implements Comparable<StFile> permits StDirectory, StFileGroup {
+    private static final Logger logger = LogManager.getLogger(StFile.class);
 
     /**
      * The SyncThing folder that this file represents.

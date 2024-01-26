@@ -1,5 +1,7 @@
 package biz.donvi.syncthingversionpicker.files;
 
+import java.util.function.Supplier;
+
 import static biz.donvi.syncthingversionpicker.files.Location.When.Current;
 import static biz.donvi.syncthingversionpicker.files.Location.When.Version;
 import static biz.donvi.syncthingversionpicker.files.Location.Where.Local;
@@ -41,6 +43,13 @@ public enum Location {
                 case Remote -> ifRemote;
             };
         }
+
+        public <T> T which(Supplier<T> ifLocal, Supplier<T> ifRemote) {
+            return switch (this) {
+                case Local -> ifLocal.get();
+                case Remote -> ifRemote.get();
+            };
+        }
     }
 
     /**
@@ -56,9 +65,16 @@ public enum Location {
                 case Version -> ifVersion;
             };
         }
+        public <T> T which(Supplier<T> ifCurrent, Supplier<T> ifVersion) {
+            return switch (this) {
+                case Current -> ifCurrent.get();
+                case Version -> ifVersion.get();
+            };
+        }
     }
-
+    /** Where the file is located, as in, is it on the <b>{@code Local}</b> or <b>{@code Remote}</b> machine. */
     public final Where where;
+    /** Which type of file is this, it is either a <b>{@code Current}</b> file, or a <b>{@code Version}s</b> file. */
     public final When  when;
 
     Location(Where where, When when) {
