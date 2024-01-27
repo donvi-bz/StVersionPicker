@@ -3,10 +3,8 @@ package biz.donvi.syncthingversionpicker.controllers;
 import atlantafx.base.theme.Styles;
 import biz.donvi.syncthingversionpicker.StFolder;
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
-import biz.donvi.syncthingversionpicker.files.Location;
-import biz.donvi.syncthingversionpicker.files.StDirectory;
-import biz.donvi.syncthingversionpicker.files.StFile;
-import biz.donvi.syncthingversionpicker.files.StFileGroup;
+import biz.donvi.syncthingversionpicker.files.*;
+import biz.donvi.syncthingversionpicker.services.FileManipulationService;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -111,6 +109,9 @@ public class PickerController implements Initializable {
             comboBox.getValue(),
             (x, y) -> SyncPickerApp.getApplication().getRemoteLister().setupSessionAndChannelAsync(x, y)
         );
+        FullStLister lister = rootFile.fullStLister;
+        lister.setService(FileManipulationService.class, new FileManipulationService());
+
         var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
 
         logger.debug("Combo box selected new folder `{}`", comboBox.getValue().label());

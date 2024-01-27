@@ -5,20 +5,16 @@ import biz.donvi.syncthingversionpicker.SyncPickerApp;
 import biz.donvi.syncthingversionpicker.files.Location;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
 import biz.donvi.syncthingversionpicker.files.StFileGroup.File;
+import biz.donvi.syncthingversionpicker.services.FileManipulationService;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.ResourceBundle;
@@ -156,60 +152,22 @@ public class PickerTableComponentController implements Initializable {
             items.add(restoreVersion);
 
 
-            showInExplorer.setOnAction(this::showInExplorerAction);
-            openInDefaultApp.setOnAction(this::openInDefaultAppAction);
-            saveACopy.setOnAction(this::saveACopyAction);
-        }
-
-        private void showInExplorerAction(ActionEvent event) {
-            logger.info("Show file in explorer action triggered for file `{}`", file);
-            file.getLocalFile().whenCompleteAsync((file, ex) -> {
-                if (System.getProperty("os.name").toLowerCase().contains("win")) {
-                    logger.debug("Using windows specific explorer.");
-                    try {
-                        Runtime.getRuntime().exec("explorer.exe /select," + file.getPath());
-                    } catch (IOException ex2) {
-                        logger.error("Could not open file in explorer", ex2);
-                    }
-                } else {
-                    logger.debug("Using generic java explorer");
-                    app.getHostServices().showDocument(file.getPath());
-                }
+            showInExplorer.setOnAction(event -> {
+                logger.debug("Show file in explorer action triggered for file `{}`", file);
+                getFileService().showFileInExplorer(file);
+            });
+            openInDefaultApp.setOnAction(event -> {
+                logger.debug("Open in default app action triggered for file `{}`", file);
+                getFileService().openInDefaultApp(file);
+            });
+            saveACopy.setOnAction(event -> {
+                logger.debug("Save a copy action triggered for file `{}`", file);
+                getFileService().saveACopy(file);
             });
         }
 
-        private void openInDefaultAppAction(ActionEvent event) {
-            logger.info("Open in default app action triggered for file `{}`", file);
-            file.getLocalFile().whenCompleteAsync((file, ex) -> {
-                app.getHostServices().showDocument(file.getPath());
-            });
-        }
-
-        private void saveACopyAction(ActionEvent event) {
-            logger.info("Save a copy action triggered for file `{}`", file);
-            FileChooser chooser = new FileChooser();
-            chooser.setTitle("Save Copy As...");
-            chooser.setInitialFileName(file.getParent().fileName);
-            String ext = file.getParent().fileExtension;
-            chooser.getExtensionFilters().addAll(
-                new FileChooser.ExtensionFilter("Save as Original (%s)".formatted(ext), "*" + ext),
-                new FileChooser.ExtensionFilter("All Files", "*.*")
-            );
-            java.io.File saveLocation = chooser.showSaveDialog(app.getStage());
-            if (saveLocation != null)
-                this.file
-                    .getLocalFile()
-                    .whenCompleteAsync((file, ex) -> {
-                        if (file != null) try {
-                            Files.copy(file.toPath(), saveLocation.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                            logger.debug("Successfully copied file.");
-                        } catch (IOException e) {
-                            logger.error("Could not copy file %s to %s".formatted(file, saveLocation), e);
-                        }
-                        if (ex != null) {
-                            logger.error("Could not get file %s".formatted(file), ex);
-                        }
-                    });
+        private FileManipulationService getFileService() {
+            return file.getParent().parentDir.fullStLister.getService(FileManipulationService.class);
         }
 
         private void updateMenuForFile(File file) {

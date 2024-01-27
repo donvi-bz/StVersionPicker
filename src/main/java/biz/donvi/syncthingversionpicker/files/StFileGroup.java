@@ -236,6 +236,7 @@ public final class StFileGroup extends StFile {
             final Where where = location.where;
             // The java.io.File that should exist for this file.
             java.io.File file = where.which(this::getRawFullPath, this::getTempLocation).toFile();
+            file.deleteOnExit();
             // And this is an async method, so we got one of these too.
             CompletableFuture<java.io.File> future = new CompletableFuture<>();
             // Now make sure it exists...
@@ -266,7 +267,8 @@ public final class StFileGroup extends StFile {
             else {
                 switch (where) {
                     case Local -> logger.debug(
-                        "Local file requested. Completing future immediately for with `{}`", file);
+                        "Local file requested for already local file. " +
+                        "Completing future immediately for with `{}`", file);
                     case Remote -> logger.debug(
                         "Remote file has already been copied to the temp directory. " +
                         "Completing future immediately with `{}`", file);

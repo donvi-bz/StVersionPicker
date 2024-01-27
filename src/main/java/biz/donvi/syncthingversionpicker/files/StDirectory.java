@@ -43,12 +43,12 @@ public final class StDirectory extends StFile {
      * The location if this {@code StDirectory}. Unlike a {@link StFileGroup}, a {@code StDirectory} only ever has one
      * location. This is because for any given directory, all locations will be checked for additional files.
      */
-    final Location location;
+    public final Location location;
 
     /**
      * The lister used to list files in a given directory.
      */
-    final FullStLister fullStLister;
+    public final FullStLister fullStLister;
 
     StDirectory(StFolder localStFolder, FullStLister fullStLister, Path relativePath, Location location, StDirectory parentDir) {
         super(localStFolder, relativePath, parentDir);
