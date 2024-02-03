@@ -101,18 +101,14 @@ public final class StFileGroup extends StFile {
             }
         }
 
-        public final  String        nameRaw;
-        public final  Location      location;
-        private final String        timestamp;
-        private final LocalDateTime localDateTime;
-        private final String        conflictor;
+        public final  ParsedFileName nameInfo;
+        public final  Location       location;
+        private final LocalDateTime  localDateTime;
 
-        File(String nameRaw, Location location, String timestamp, String conflictor) {
-            this.nameRaw = nameRaw;
+        File(ParsedFileName nameInfo, Location location) {
+            this.nameInfo = nameInfo;
             this.location = location;
-            this.timestamp = timestamp;
-            this.localDateTime = "".equals(timestamp) ? null : LocalDateTime.parse(timestamp, dfInput);
-            this.conflictor = conflictor != null ? conflictor : "";
+            this.localDateTime = nameInfo.hasSyncDate() ? LocalDateTime.parse(nameInfo.syncDate(), dfInput) : null;
         }
 
         public StFileGroup getParent() {
@@ -154,8 +150,8 @@ public final class StFileGroup extends StFile {
         public Path getRawRelativePath() {
             Path parent = relativePath.getParent();
             return parent != null
-                ? parent.resolve(nameRaw)
-                : Path.of(nameRaw);
+                ? parent.resolve(nameInfo.originalName())
+                : Path.of(nameInfo.originalName());
         }
 
         /**
@@ -188,7 +184,7 @@ public final class StFileGroup extends StFile {
         @Override
         public String toString() {
             return "File{" +
-                   "nameRaw='" + nameRaw + '\'' +
+                   "nameRaw='" + nameInfo.originalName() + '\'' +
                    ", location=" + location +
 //                   ", timestamp='" + timestamp + '\'' +
 //                   ", localDateTime=" + localDateTime +
@@ -213,7 +209,7 @@ public final class StFileGroup extends StFile {
 
         /**
          * Returns the path that a temporary {@link java.io.File} should exist for this file. <br/>
-         * Note: this is <b>only</b> for {@link Where#Local Local} files.
+         * Note: this is <b>only</b> for {@link Where#Remote Remote} files.
          *
          * @return
          */
@@ -224,11 +220,13 @@ public final class StFileGroup extends StFile {
         }
 
         /**
-         * Returns a {@link CompletableFuture} of a {@link java.io.File} that holds this file's data. </br>
-         * Note: If this is a remote file, a copy will be downloaded and saved to this computer's temporary path. </br>
+         * Returns a {@link CompletableFuture} of a {@link java.io.File} that holds this file's data. <br/>
+         * Note: If this is a remote file, a copy will be downloaded and saved to this computer's temporary path. <br/>
+         * Note: <b>For {@code Local} files only:</b> {@link CompletableFuture#get() get()} can be called because local
+         * files never cause any true async actions to happen. <br/>
          * For direct access to an {@link InputStream}, use {@link #getInputStream()} instead.
          *
-         * @return A {@link CompletableFuture} of a {@link java.io.File} that holds this file's data. </br>
+         * @return A {@link CompletableFuture} of a {@link java.io.File} that holds this file's data. <br/>
          * Note: For remote files, this will be a temporary file.
          */
         public CompletableFuture<java.io.File> getLocalFile() {

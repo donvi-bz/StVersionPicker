@@ -31,6 +31,8 @@ public class PickerTableComponentController implements Initializable {
     @FXML
     public TableColumn<File, String> columnLocation;
     @FXML
+    public TableColumn<File, String> columnConflict;
+    @FXML
     public TableColumn<File, String> columnDateCreated;
     @FXML
     public TableColumn<File, String> columnTimeSinceCreation;
@@ -49,6 +51,10 @@ public class PickerTableComponentController implements Initializable {
             x.getValue().location.where.which("Local", "Remote")
         ));
 
+        columnConflict.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
+            x.getValue().nameInfo.hasConflict() ? "Conflict" : ""
+        ));
+
         columnDateCreated.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
             x.getValue().getTimeStamp()
         ));
@@ -60,7 +66,7 @@ public class PickerTableComponentController implements Initializable {
         columnTimeSinceCreation.setSortable(false);
 
         columnName.setCellValueFactory(x -> new ReadOnlyObjectWrapper<>(
-            x.getValue().nameRaw
+            x.getValue().nameInfo.originalName()
         ));
 
         fileGroupTable.getStyleClass().add(Styles.DENSE);
@@ -107,7 +113,7 @@ public class PickerTableComponentController implements Initializable {
                 return;
             }
             String style = "";
-            if (file.location.when == Location.When.Current)
+            if (file.location.when == Location.When.Current && !file.nameInfo.hasConflict())
                 style += "-fx-font-weight: bold;-fx-border: 2px;";
 
             style += isSelected()
@@ -163,6 +169,10 @@ public class PickerTableComponentController implements Initializable {
             saveACopy.setOnAction(event -> {
                 logger.debug("Save a copy action triggered for file `{}`", file);
                 getFileService().saveACopy(file);
+            });
+            restoreVersion.setOnAction(event -> {
+                logger.debug("Restore version action triggered for file `{}`", file);
+                getFileService().restoreVersion(file);
             });
         }
 

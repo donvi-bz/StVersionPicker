@@ -9,6 +9,7 @@
     <columns>
         <TableColumn fx:id="columnType" maxWidth="1000.0" prefWidth="10.0" text="Type"/>
         <TableColumn fx:id="columnLocation" maxWidth="1000.0" prefWidth="10.0" text="Location"/>
+        <TableColumn fx:id="columnConflict" maxWidth="1000.0" prefWidth="10.0" text="Conflict?"/>
         <TableColumn fx:id="columnTimeSinceCreation" maxWidth="1000.0" prefWidth="20.0" text="Time Since Created"/>
         <TableColumn fx:id="columnDateCreated" maxWidth="1000.0" prefWidth="20.0" text="Date Created"/>
         <TableColumn fx:id="columnName" maxWidth="1000.0" prefWidth="30.0" text="Raw Name"/>

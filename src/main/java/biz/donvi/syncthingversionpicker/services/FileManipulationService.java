@@ -2,14 +2,18 @@ package biz.donvi.syncthingversionpicker.services;
 
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
 import biz.donvi.syncthingversionpicker.files.FullStLister;
+import biz.donvi.syncthingversionpicker.files.Location;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 public class FileManipulationService implements FullStLister.FileService {
     private static final Logger logger = LogManager.getLogger(FileManipulationService.class);
@@ -52,19 +56,57 @@ public class FileManipulationService implements FullStLister.FileService {
         if (saveLocation != null) {
             logger.debug("Got potential save location: `{}`", saveLocation.getPath());
             file.getLocalFile()
-                .whenCompleteAsync((iof, ex) -> {
-                    if (iof != null) try {
-                        Files.copy(iof.toPath(), saveLocation.toPath(), StandardCopyOption.REPLACE_EXISTING);
-                        logger.debug("Successfully copied file.");
-                    } catch (IOException e) {
-                        logger.error("Could not copy file %s to %s".formatted(iof, saveLocation), e);
-                    }
-                    if (ex != null) {
-                        logger.error("Could not get file %s".formatted(iof), ex);
-                    }
-                });
+                .whenCompleteAsync((iof, ex) -> copyFile(saveLocation, iof, ex));
         } else {
             logger.debug("Did not get a location to save the file too. Aborting action.");
         }
+    }
+    private void copyFile(File saveLocation, File dataSoSave, Throwable ex) {
+        if (dataSoSave != null) try {
+            Files.copy(dataSoSave.toPath(), saveLocation.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            logger.debug("Successfully copied file.");
+        } catch (IOException e) {
+            logger.error("Could not copy file %s to %s".formatted(dataSoSave, saveLocation), e);
+        }
+        if (ex != null) {
+            logger.error("Could not get file %s".formatted(dataSoSave), ex);
+        }
+    }
+
+    public CompletableFuture<File> restoreVersion(StFileGroup.File fileToRestore) {
+        logger.info("Attempting to restore file `{}`", fileToRestore);
+        Optional<StFileGroup.File> oCurrentFile = fileToRestore
+            .getParent().getFiles()
+            .stream().filter(f -> f.location == Location.LocalCurrent)
+            .findFirst();
+        if (oCurrentFile.isPresent()) {
+            StFileGroup.File currentFile = oCurrentFile.get();
+            logger.debug("Current file appears to be present. Will rename file `{}`", currentFile);
+            File currentFileReal;
+            try {
+                // We can call `get()` because Local files don't move threads.
+                // Local files should also not throw any exceptions.
+                currentFileReal = currentFile.getLocalFile().get();
+            } catch (Exception e) {
+                logger.error("Somehow got an exception?? This should not be possible for local files...", e);
+                throw new RuntimeException(e);
+            }
+            // Renaming shenanigans
+            String name = currentFileReal.getName();
+            String nameBeginning, nameEnd;
+            int dotIndex = name.lastIndexOf('.');
+            nameBeginning = dotIndex > 0 ? name.substring(0, dotIndex) : name;
+            nameEnd = dotIndex > 0 ? name.substring(dotIndex) : "";
+            name = nameBeginning + "~PREV" + nameEnd;
+            File newFile = currentFileReal.toPath().getParent().resolve(name).toFile();
+            // And time to actually do the renaming
+            boolean didRename = currentFileReal.renameTo(newFile);
+            if (didRename)
+                logger.debug("Successfully renamed file to `{}`", currentFileReal.getPath());
+            else logger.warn("Could not rename file to `{}`", newFile.getPath());
+            // Current file should no longer be present. Now we can continue on
+        }
+        File saveLocation = fileToRestore.getParent().getFullPath().toFile();
+        return fileToRestore.getLocalFile().whenCompleteAsync((iof, ex) -> copyFile(saveLocation, iof, ex));
     }
 }
