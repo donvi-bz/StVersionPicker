@@ -3,6 +3,7 @@ package biz.donvi.syncthingversionpicker.services;
 import biz.donvi.syncthingversionpicker.SyncPickerApp;
 import biz.donvi.syncthingversionpicker.files.FullStLister;
 import biz.donvi.syncthingversionpicker.files.Location;
+import biz.donvi.syncthingversionpicker.files.ParsedFileName;
 import biz.donvi.syncthingversionpicker.files.StFileGroup;
 import javafx.stage.FileChooser;
 import org.apache.logging.log4j.LogManager;
@@ -92,12 +93,8 @@ public class FileManipulationService implements FullStLister.FileService {
                 throw new RuntimeException(e);
             }
             // Renaming shenanigans
-            String name = currentFileReal.getName();
-            String nameBeginning, nameEnd;
-            int dotIndex = name.lastIndexOf('.');
-            nameBeginning = dotIndex > 0 ? name.substring(0, dotIndex) : name;
-            nameEnd = dotIndex > 0 ? name.substring(dotIndex) : "";
-            name = nameBeginning + "~PREV" + nameEnd;
+            ParsedFileName nameParsed = new ParsedFileName(currentFileReal.getName());
+            String name = nameParsed.getBeginning() + "~VP-PREV" + nameParsed.getEnd();
             File newFile = currentFileReal.toPath().getParent().resolve(name).toFile();
             // And time to actually do the renaming
             boolean didRename = currentFileReal.renameTo(newFile);

@@ -14,6 +14,7 @@ public class ParsedFileNameTest {
         Assertions.assertFalse(p.hasConflict());
         Assertions.assertFalse(p.hasSyncDate());
         Assertions.assertTrue(p.hasExtension());
+        Assertions.assertEquals(name, p.rebuild());
     }
 
     @Test
@@ -25,6 +26,7 @@ public class ParsedFileNameTest {
         Assertions.assertFalse(p.hasConflict());
         Assertions.assertFalse(p.hasSyncDate());
         Assertions.assertFalse(p.hasExtension());
+        Assertions.assertEquals(name, p.rebuild());
     }
 
     @Test
@@ -36,6 +38,7 @@ public class ParsedFileNameTest {
         Assertions.assertFalse(p.hasConflict());
         Assertions.assertTrue(p.hasSyncDate());
         Assertions.assertTrue(p.hasExtension());
+        Assertions.assertEquals(name, p.rebuild());
     }
     @Test
     public void testRegularVersionWithoutExtension() {
@@ -46,6 +49,7 @@ public class ParsedFileNameTest {
         Assertions.assertFalse(p.hasConflict());
         Assertions.assertTrue(p.hasSyncDate());
         Assertions.assertFalse(p.hasExtension());
+        Assertions.assertEquals(name, p.rebuild());
     }
 
     @Test
@@ -57,6 +61,7 @@ public class ParsedFileNameTest {
         Assertions.assertTrue(p.hasConflict());
         Assertions.assertTrue(p.hasSyncDate());
         Assertions.assertTrue(p.hasExtension());
+        Assertions.assertEquals(name, p.rebuild());
     }
 
     @Test
@@ -68,5 +73,6 @@ public class ParsedFileNameTest {
         Assertions.assertTrue(p.hasConflict());
         Assertions.assertTrue(p.hasSyncDate());
         Assertions.assertFalse(p.hasExtension());
+        Assertions.assertEquals(name, p.rebuild());
     }
 }

@@ -64,6 +64,15 @@ public record ParsedFileName(
     public boolean hasConflict()       { return      hasConflictDate() && hasConflictDevice();       }
     public boolean hasSyncDate()       { return       syncDate != null && !syncDate.isEmpty();       }
     public boolean hasExtension()      { return      extension != null && !extension.isEmpty();      }
+
+    public String getBeginning() { return hasName()      ? name      : ""; }
+    public String getEnd()       { return hasExtension() ? extension : ""; }
+    public String getMiddle()    {
+        return (hasPrevMarker() ? PrevMarker.rebuilder.formatted(prevMarker)                   : "") +
+               (hasConflict()   ? Conflict  .rebuilder.formatted(conflictDate, conflictDevice) : "") +
+               (hasSyncDate()   ? Date      .rebuilder.formatted(syncDate)                     : "");
+    }
+    public String rebuild()      { return getBeginning() + getMiddle() + getEnd(); }
     //@formatter:on
 
 
