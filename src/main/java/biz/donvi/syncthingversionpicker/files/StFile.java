@@ -60,10 +60,12 @@ public abstract sealed class StFile implements Comparable<StFile> permits StDire
      */
     public abstract Location getPrimaryLocation();
 
+    public abstract FullStLister getFullStLister();
+
     public Path getRelativePath() {return relativePath;}
 
     public Path getFullPath() {
-        return parentDir.fullStLister.rootDir(Location.LocalCurrent).resolve(getRelativePath());
+        return getFullStLister().rootDir(Location.LocalCurrent).resolve(getRelativePath());
     }
 
     @Override

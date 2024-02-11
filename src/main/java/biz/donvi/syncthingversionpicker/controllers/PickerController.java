@@ -109,7 +109,7 @@ public class PickerController implements Initializable {
             comboBox.getValue(),
             (x, y) -> SyncPickerApp.getApplication().getRemoteLister().setupSessionAndChannelAsync(x, y)
         );
-        FullStLister lister = rootFile.fullStLister;
+        FullStLister lister = rootFile.getFullStLister();
         lister.setService(FileManipulationService.class, new FileManipulationService());
 
         var root = new TreeItem<StFile>(rootFile, new FontIcon(Feather.FOLDER));
@@ -341,11 +341,14 @@ public class PickerController implements Initializable {
     }
 
     /* **************************************************************
-     MARK: - FileTreeCell
+     MARK: - FileTreeCellContextMenu
      ****************************************************************/
 
     private class FileTreeContextMenu extends ContextMenu {
-        final MenuItem refreshFolder = new MenuItem("Refresh Folder");
+        private final Logger logger = LogManager.getLogger(FileTreeContextMenu.class);
+
+        final MenuItem refreshFolder  = new MenuItem("Refresh Folder");
+        final MenuItem restoreVersion = new MenuItem("Restore Previous Version");
 
         private FileTreeCell     fileTreeCell;
         private TreeItem<StFile> parentFolder;
@@ -353,10 +356,20 @@ public class PickerController implements Initializable {
         {
             var items = this.getItems();
             items.add(refreshFolder);
+            items.add(restoreVersion);
 
             refreshFolder.setOnAction(event -> {
                 parentFolder.getChildren().clear();
                 scanAndAddFiles(parentFolder);
+            });
+            restoreVersion.setOnAction(event -> {
+                StFile file = getStFile();
+                logger.debug("Restoring version action triggered for file group `{}`", file);
+                if (file instanceof StFileGroup fileGroup)
+                    getFileService().restoreVersion(fileGroup, true);
+                else if (file instanceof StDirectory folder) {
+                    getFileService().restoreVersion(folder, false);
+                }
             });
         }
 
@@ -367,10 +380,20 @@ public class PickerController implements Initializable {
                 if (parentFolder.getValue() instanceof StFileGroup) {
                     parentFolder = parentFolder.getParent();
                     refreshFolder.setText("Refresh Parent Folder");
+                    restoreVersion.setText("Restore Previous Version");
                 } else {
                     refreshFolder.setText("Refresh Folder");
+                    restoreVersion.setText("Restore Entire Folder");
                 }
             }
+        }
+
+        private StFile getStFile() {
+            return fileTreeCell.getTreeItem().getValue();
+        }
+
+        private FileManipulationService getFileService() {
+            return getStFile().getFullStLister().getService(FileManipulationService.class);
         }
     }
 }

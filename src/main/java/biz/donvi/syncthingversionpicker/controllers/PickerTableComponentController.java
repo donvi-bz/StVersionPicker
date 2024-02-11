@@ -172,12 +172,12 @@ public class PickerTableComponentController implements Initializable {
             });
             restoreVersion.setOnAction(event -> {
                 logger.debug("Restore version action triggered for file `{}`", file);
-                getFileService().restoreVersion(file);
+                getFileService().restoreVersion(file, true);
             });
         }
 
         private FileManipulationService getFileService() {
-            return file.getParent().parentDir.fullStLister.getService(FileManipulationService.class);
+            return file.getParent().getFullStLister().getService(FileManipulationService.class);
         }
 
         private void updateMenuForFile(File file) {

@@ -61,6 +61,10 @@ public final class StFileGroup extends StFile {
         return files.stream().filter(f -> locs.contains(f.location)).count();
     }
 
+    public FullStLister getFullStLister() {
+        return parentDir.getFullStLister();
+    }
+
     @Override
     public Location getPrimaryLocation() {
         return location;
@@ -163,7 +167,7 @@ public final class StFileGroup extends StFile {
          * @return
          */
         public Path getRawFullPath() {
-            return parentDir.fullStLister.rootDir(location).resolve(getRawRelativePath());
+            return getFullStLister().rootDir(location).resolve(getRawRelativePath());
         }
 
 
@@ -204,7 +208,7 @@ public final class StFileGroup extends StFile {
         public CompletableFuture<InputStream> getInputStream() {
             logger.debug("Input stream requested for file `{}`", this);
             logger.trace("Raw path: `{}` \t Location: {}", getRawFullPath(), location);
-            return parentDir.fullStLister.readFile(getRawRelativePath(), location);
+            return getFullStLister().readFile(getRawRelativePath(), location);
         }
 
         /**
@@ -244,7 +248,7 @@ public final class StFileGroup extends StFile {
                     var e = new FileNotFoundException("Somehow file %s does not exist".formatted(this));
                     future.completeExceptionally(e);
                 }
-                case Remote -> getInputStream().whenCompleteAsync((in, ex) -> {
+                case Remote -> getInputStream().whenComplete((in, ex) -> {
                     if (ex != null) {
                         logger.warn("Could not get input stream for file `{}`. Forwarding exception.", this);
                         future.completeExceptionally(new Exception(ex));

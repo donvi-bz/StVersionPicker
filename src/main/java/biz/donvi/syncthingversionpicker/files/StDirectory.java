@@ -20,7 +20,7 @@ public final class StDirectory extends StFile {
     /**
      * The lister used to list files in a given directory.
      */
-    public final FullStLister fullStLister;
+    private final FullStLister fullStLister;
 
     StDirectory(
         StFolder localStFolder, FullStLister fullStLister, Path relativePath, Location location, StDirectory parentDir
@@ -81,6 +81,10 @@ public final class StDirectory extends StFile {
                 }
                 return children;
             });
+    }
+
+    public FullStLister getFullStLister() {
+        return fullStLister;
     }
 
     /**
