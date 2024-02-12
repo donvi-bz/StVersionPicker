@@ -118,10 +118,7 @@ public class FileManipulationService implements FullStLister.FileService {
             // Current file should no longer be present. Now we can continue on
         }
         File saveLocation = fileToRestore.getParent().getFullPath().toFile();
-        CompletableFuture<File> fileCopyFuture
-            = fileToRestore.getLocalFile().whenCompleteAsync((iof, ex) -> copyFile(saveLocation, iof, ex));
-        logger.debug("Finished restoring file `{}`", fileToRestore);
-        return fileCopyFuture;
+        return fileToRestore.getLocalFile().whenCompleteAsync((iof, ex) -> copyFile(saveLocation, iof, ex));
     }
 
     /**
@@ -158,11 +155,11 @@ public class FileManipulationService implements FullStLister.FileService {
      * @return A completable future holding a {@code List} of {@code File}s that have been copied.
      */
     private CompletableFuture<List<File>> restoreVersion(StFile fileToRestore, boolean replaceExisting) {
-        if (fileToRestore instanceof StFileGroup fileGroup)
-            return restoreVersion(fileGroup, replaceExisting).thenApplyAsync(List::of);
-        else if (fileToRestore instanceof StDirectory folder)
-            return restoreVersion(folder, replaceExisting);
-        else return CompletableFuture.completedFuture(List.of());
+        return switch (fileToRestore) {
+            case StFileGroup fileGroup -> restoreVersion(fileGroup, replaceExisting).thenApplyAsync(List::of);
+            case StDirectory folder -> restoreVersion(folder, replaceExisting);
+            case null -> CompletableFuture.completedFuture(List.of());
+        };
     }
 
     /**

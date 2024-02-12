@@ -87,6 +87,15 @@ public final class StDirectory extends StFile {
         return fullStLister;
     }
 
+    @Override
+    public String toString() {
+        return "StDirectory{" +
+               "location=" + location +
+               ", relativePath=" + relativePath +
+               ", fileName='" + fileName + '\'' +
+               '}';
+    }
+
     /**
      * A record purely for moving file info around conveniently.
      *

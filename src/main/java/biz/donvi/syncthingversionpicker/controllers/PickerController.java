@@ -22,10 +22,8 @@ import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.net.URL;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
 public class PickerController implements Initializable {
 
@@ -124,31 +122,45 @@ public class PickerController implements Initializable {
     }
 
 
-    void scanAndAddFiles(TreeItem<StFile> parent) {
-        scanAndAddFiles(parent, true);
+    /**
+     * This will scan the
+     *
+     * @param parent
+     * @return
+     */
+    CompletableFuture<Void> scanAndAddFiles(TreeItem<StFile> parent) {
+        return scanAndAddFiles(parent, true);
     }
 
-    void scanAndAddFiles(TreeItem<StFile> parent, boolean recursive) {
+    CompletableFuture<Void> scanAndAddFiles(TreeItem<StFile> parent, boolean recursive) {
         // This only works for directories
         if (!(parent.getValue() instanceof StDirectory parentDir))
-            return;
+            return CompletableFuture.completedFuture(null);
         // Taking care of this now...
         if (!recursive)
             parent.addEventHandler(TreeItem.branchExpandedEvent(), treeItemEventHandler);
         // Adding Data. We have to do each location separately.
         String pds = parentDir.getRelativePath().toString();
         logger.debug("Listing all files for directory `{}`", pds.isEmpty() ? "." : pds);
+        // Prep a completable future to mark when we are done.
+        CompletableFuture<Void> theFuture = new CompletableFuture<>();
         parentDir.listFilesAsync().thenAcceptAsync(files -> {
+            List<CompletableFuture<Void>> subTasks = new ArrayList<>();
             // Now the logic for adding files once we actually get them.
             var children = parent.getChildren();
             for (StFile file : files) {
                 var item = new TreeItem<>(file);
                 if (file instanceof StDirectory && recursive)
-                    scanAndAddFiles(item, false);
+                    subTasks.add(scanAndAddFiles(item, false));
                 children.add(item);
             }
             parent.getChildren().sort(Comparator.comparing(TreeItem::getValue));
+            // And let us know when the tasks finish.
+            CompletableFuture
+                .allOf(subTasks.toArray(CompletableFuture[]::new))
+                .thenAccept(ignored -> theFuture.complete(null));
         }, Platform::runLater);
+        return theFuture;
     }
 
     void fileScannerAndAdder2(TreeItem<StFile> parent) {
@@ -168,6 +180,50 @@ public class PickerController implements Initializable {
             fileScannerAndAdder2((TreeItem) event.getTreeItem());
         }
     };
+
+    /**
+     * Finds a {@link TreeItem} that holds a {@link StFile} with the same name and path as the {@link StFile} passed in.
+     * That means that the {@link StFile} passed in may not be the same as the one found.
+     *
+     * @param groupToSelect The {@link StFile} which we want to find the {@link TreeItem} that owns it.
+     * @return The {@link TreeItem} that contains a {@link StFile} matching the name and location of the one given.
+     */
+    TreeItem<StFile> selectFile(StFile groupToSelect) {
+        TreeItem<StFile> selectedItem = treeView.getRoot();
+        boolean foundItem = true;
+        for (String part : groupToSelect.getRelativePath().toString().split("[\\\\/]")) {
+            boolean foundNewest = false;
+            for (TreeItem<StFile> dirItem : selectedItem.getChildren())
+                if (dirItem.getValue().fileName.equals(part)) {
+                    selectedItem = dirItem;
+                    foundNewest = true;
+                    break;
+                }
+            if (!foundNewest) {
+                foundItem = false;
+                break;
+            }
+        }
+        return selectedItem;
+    }
+
+    /**
+     * This is a convenience method that combines {@link #scanAndAddFiles(TreeItem)} with {@link #selectFile(StFile)}.
+     * I noticed that when using these two methods together, I needed to explicitly capture the {@code StFile}
+     * beforehand, it became a multi-line ugly process and thus was made its own thing.
+     *
+     * @param parentToRescan The {@link TreeItem} to rescan (See {@link #scanAndAddFiles(TreeItem)} for more details).
+     * @param fileToSelect   The {@link StFile} to then select (See {@link #selectFile(StFile)} for more details).
+     * @return A CompletableFuture to tell when this is done.
+     */
+    CompletableFuture<Void> rescanAndSelect(TreeItem<StFile> parentToRescan, StFile fileToSelect) {
+        parentToRescan.getChildren().clear();
+        return scanAndAddFiles(parentToRescan)
+            .thenAccept(ignored -> treeView
+                .getSelectionModel()
+                .select(selectFile(fileToSelect))
+            );
+    }
 
     /* **************************************************************
      MARK: - DoubleStFolder
@@ -359,17 +415,18 @@ public class PickerController implements Initializable {
             items.add(restoreVersion);
 
             refreshFolder.setOnAction(event -> {
-                parentFolder.getChildren().clear();
-                scanAndAddFiles(parentFolder);
+                rescanAndSelect(parentFolder, fileTreeCell.getItem());
             });
             restoreVersion.setOnAction(event -> {
                 StFile file = getStFile();
                 logger.debug("Restoring version action triggered for file group `{}`", file);
-                if (file instanceof StFileGroup fileGroup)
-                    getFileService().restoreVersion(fileGroup, true);
-                else if (file instanceof StDirectory folder) {
-                    getFileService().restoreVersion(folder, false);
-                }
+                CompletableFuture<?> future = switch (file) {
+                    case StFileGroup fileGroup -> getFileService().restoreVersion(fileGroup, true);
+                    case StDirectory folder -> getFileService().restoreVersion(folder, false);
+                    case null -> null;
+                };
+                assert future != null;
+                future.thenAccept(ignored -> rescanAndSelect(parentFolder, fileTreeCell.getItem()));
             });
         }
 
