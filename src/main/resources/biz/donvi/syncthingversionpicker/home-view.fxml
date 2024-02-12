@@ -9,7 +9,7 @@
 
 <VBox alignment="CENTER_LEFT" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" spacing="4.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="biz.donvi.syncthingversionpicker.controllers.HomeController">
     <children>
-        <Label alignment="CENTER" prefHeight="80.0" prefWidth="556.0" styleClass="title-1" text="Syncthing Version Picker v0.1" />
+        <Label alignment="CENTER" prefHeight="80.0" prefWidth="556.0" styleClass="title-1" text="Syncthing Version Picker v0.2" />
         <Label styleClass="title-3" text="Local Syncthing" />
         <fx:include fx:id="localStPicker" source="home-view/syncthing-picker.fxml"/>
         <Label styleClass="title-3" text="Remote Syncthing" />
