@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'biz.donvi'
-version '0.1'
+version '0.2'
 
 repositories {
   mavenCentral()
@@ -45,7 +45,7 @@ dependencies {
   implementation 'io.github.mkpaz:atlantafx-base:2.0.1'
   implementation 'org.kordamp.ikonli:ikonli-feather-pack:12.3.1'
   implementation 'org.kordamp.ikonli:ikonli-evaicons-pack:12.3.1'
-  implementation 'com.github.mwiede:jsch:0.2.13'
+  implementation 'com.github.mwiede:jsch:0.2.15'
   implementation 'org.apache.logging.log4j:log4j-api:2.22.1'
   implementation 'org.apache.logging.log4j:log4j-core:2.22.1'
   implementation 'org.fusesource.jansi:jansi:2.4.1'
