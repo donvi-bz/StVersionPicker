@@ -68,6 +68,15 @@ jlink {
   launcher {
     name = 'SyncthingVersionPicker'
   }
+  // Taken from https://stackoverflow.com/a/60533669, then removed half the code.
+  jpackage {
+    installerOptions = [
+      '--description', 'An app for picking versioned files from a remote machine running syncthing.',
+    ]
+    installerOptions += [
+      '--win-menu', '--win-shortcut'
+    ]
+  }
 }
 
 jlinkZip {
